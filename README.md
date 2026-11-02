@@ -1,5 +1,7 @@
 # Owl's Nest
 
+Prototype for Temple-AI-Build-Challenge.
+
 A responsive Temple campus study-spot finder prototype. It uses sample data and in-memory interactions; crowd reports and student suggestions are not shared and reset when the page reloads.
 
 ## Run locally
