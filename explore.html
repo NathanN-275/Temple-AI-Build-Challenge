@@ -107,7 +107,11 @@
               <div id="campus-map" class="campus-map" role="application" aria-label="Interactive map of Temple study, dining, and recreation locations"></div>
               <iframe id="truck-map" title="Temple University food truck map" src="https://www.google.com/maps/d/embed?mid=1kFf5IaeeXiFpn_UHIyd4UqwHj90&amp;ehbc=2E312F" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen hidden></iframe>
             </div>
-            <div class="map-legend"><span><i class="map-key study"></i> Study</span><span><i class="map-key food"></i> Food</span><span><i class="map-key recreation"></i> Recreation</span></div>
+            <div class="map-legend map-layer-filters" id="map-category-toggles" role="group" aria-label="Show categories on the campus map">
+              <button class="map-category-toggle is-active" type="button" data-map-category="study" aria-pressed="true"><i class="map-key study"></i> Study</button>
+              <button class="map-category-toggle is-active" type="button" data-map-category="food" aria-pressed="true"><i class="map-key food"></i> Food</button>
+              <button class="map-category-toggle is-active" type="button" data-map-category="recreation" aria-pressed="true"><i class="map-key recreation"></i> Recreation</button>
+            </div>
             <p class="map-attribution">Food truck locations from <a href="https://www.temple.edu/life-temple/housing-dining/temple-food-trucks" target="_blank" rel="noreferrer">Temple University</a>.</p>
             <div class="selected-panel" id="selected-panel"></div>
           </div>

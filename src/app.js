@@ -128,7 +128,7 @@ function renderList(entries) {
     const intro = document.createElement('p');
     intro.className = 'community-intro';
     intro.innerHTML = '<strong>Local knowledge lives here.</strong> Student-submitted spaces can be useful little discoveries. Crowd reports and amenities may be unverified.';
-    $('#search-input').parentElement.insertAdjacentElement('afterend', intro);
+    $('.search-row').insertAdjacentElement('afterend', intro);
   }
   list.innerHTML = entries.map(spotMarkup).join('');
   list.hidden = count === 0;
@@ -143,6 +143,7 @@ let campusMap;
 let campusMarkerLayer;
 let mapMode = 'spots';
 let campusMapFitted = false;
+const mapCategories = new Set(['study', 'food', 'recreation']);
 
 function selectMapSpot(spotId) {
   const spot = state.spots.find((item) => item.id === spotId);
@@ -186,7 +187,7 @@ function renderCampusMarkers() {
     return marker;
   };
 
-  state.spots.filter((spot) => spot.coordinates).forEach((spot) => {
+  state.spots.filter((spot) => spot.coordinates && mapCategories.has(spot.category)).forEach((spot) => {
     if (spot.mapGroup) {
       if (!foodGroups.has(spot.mapGroup)) foodGroups.set(spot.mapGroup, []);
       foodGroups.get(spot.mapGroup).push(spot);
@@ -434,12 +435,23 @@ $$('[data-map-view]').forEach((button) => button.addEventListener('click', () =>
   const trucksActive = mapMode === 'trucks';
   $('#campus-map').hidden = trucksActive;
   $('#truck-map').hidden = !trucksActive;
+  $('#map-category-toggles').hidden = trucksActive;
   $$('[data-map-view]').forEach((item) => {
     const active = item === button;
     item.classList.toggle('is-active', active);
     item.setAttribute('aria-selected', String(active));
   });
   if (!trucksActive) setTimeout(() => campusMap?.invalidateSize(), 0);
+}));
+
+$$('[data-map-category]').forEach((button) => button.addEventListener('click', () => {
+  const category = button.dataset.mapCategory;
+  if (mapCategories.has(category)) mapCategories.delete(category);
+  else mapCategories.add(category);
+  const active = mapCategories.has(category);
+  button.classList.toggle('is-active', active);
+  button.setAttribute('aria-pressed', String(active));
+  renderCampusMarkers();
 }));
 
 $('#selected-panel').addEventListener('click', (event) => {
