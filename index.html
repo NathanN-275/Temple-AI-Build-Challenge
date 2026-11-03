@@ -4,151 +4,58 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#972c38" />
-    <meta name="description" content="Find a study spot around Temple. Browse sample crowd reports, compare floors, and share hidden campus spaces." />
-    <title>Owl's Nest — Find your campus space</title>
+    <meta name="description" content="Explore study spots, dining, and student recommendations around Temple University with Owl’s Nest." />
+    <title>Owl’s Nest — Your Temple campus guide</title>
     <link rel="stylesheet" href="styles.css" />
-    <script type="module" src="src/app.js"></script>
   </head>
-  <body>
-    <header class="site-header">
-      <a class="brand" href="#top" aria-label="Owl's Nest home">
+  <body class="landing-page">
+    <header class="site-header landing-header">
+      <a class="brand" href="index.html" aria-label="Owl's Nest home">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 40 40" fill="none"><path d="M8 8.5 17.2 12 20 8l2.8 4 9.2-3.5-1 13.3c-.5 6.7-5.5 11.3-11 11.3S9.5 28.5 9 21.8L8 8.5Z" fill="currentColor"/><path d="M14.5 20.5a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6ZM25.5 20.5a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6Z" fill="#fff"/><path d="m17 25 3-2 3 2-3 3-3-3Z" fill="#f3c77b"/></svg>
         </span>
-        <span class="brand-copy"><strong>Owl’s Nest</strong><small>Temple campus spaces</small></span>
+        <span class="brand-copy"><strong>Owl’s Nest</strong><small>Temple campus guide</small></span>
       </a>
-      <nav class="header-actions" aria-label="Main actions">
-        <button class="text-button" id="location-button" type="button" aria-label="Use my location"><span aria-hidden="true">⌖</span> Use my location</button>
-        <button class="button button-primary header-submit" id="header-suggest" type="button"><span aria-hidden="true">＋</span> Share a spot</button>
+      <nav class="header-actions" aria-label="Main navigation">
+        <a class="button button-primary" href="explore.html">Explore the tool <span aria-hidden="true">→</span></a>
       </nav>
     </header>
 
-    <main id="top" class="page-shell">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <p class="eyebrow"><span class="eyebrow-dot"></span> YOUR TEMPLE CAMPUS, MADE EASIER</p>
-          <h1 id="hero-title">Don’t waste your break.<br /><span>Find your space.</span></h1>
-          <p class="hero-description">A quiet corner, a place to meet, or a bite between classes. Find a spot that fits the moment.</p>
+    <main class="landing-shell">
+      <section class="landing-hero" aria-labelledby="landing-title">
+        <div class="landing-copy">
+          <p class="eyebrow"><span class="eyebrow-dot"></span> MADE FOR TEMPLE</p>
+          <h1 id="landing-title">Find your place<br /><span>on campus.</span></h1>
+          <p class="landing-description">A quiet place to study, somewhere to meet, or a bite between classes. Owl’s Nest helps you find what fits your day at Temple.</p>
+          <a class="button button-primary landing-cta" href="explore.html">Explore the tool <span aria-hidden="true">→</span></a>
+          <p class="landing-note">Browse campus spots, dining options, and food trucks in one place.</p>
         </div>
-        <div class="hero-note"><span class="hero-note-icon" aria-hidden="true">✳</span><span><strong>A little more room to breathe.</strong><small>Discover familiar places and the ones students keep to themselves.</small></span></div>
+        <div class="landing-art" aria-hidden="true">
+          <div class="art-campus-label">TEMPLE UNIVERSITY · PHILADELPHIA</div>
+          <div class="art-walk walk-one"></div><div class="art-walk walk-two"></div>
+          <div class="art-building building-one"><span>STUDY</span></div>
+          <div class="art-building building-two"><span>MEET</span></div>
+          <div class="art-building building-three"><span>EAT</span></div>
+          <div class="art-pin pin-one"><span>⌂</span></div><div class="art-pin pin-two"><span>✳</span></div><div class="art-pin pin-three"><span>♨</span></div>
+          <div class="art-owl">✳</div>
+        </div>
       </section>
 
-      <section class="demo-banner" aria-label="Prototype data notice">
-        <span class="demo-pulse" aria-hidden="true"></span>
-        <span><strong>Prototype preview</strong> · Crowd updates are sample reports, not live occupancy.</span>
-        <span class="banner-time">Updated just now <span aria-hidden="true">↗</span></span>
+      <section class="landing-features" aria-labelledby="features-title">
+        <div class="landing-section-heading"><p class="eyebrow">ONE CAMPUS, LOTS OF POSSIBILITIES</p><h2 id="features-title">A better break starts here.</h2></div>
+        <div class="feature-grid">
+          <article class="feature-card"><span class="feature-icon" aria-hidden="true">⌂</span><h3>Find a place to focus</h3><p>Explore study spots around campus and compare spaces by floor, amenities, and sample crowd reports.</p></article>
+          <article class="feature-card"><span class="feature-icon" aria-hidden="true">♨</span><h3>See what’s nearby</h3><p>Find Temple dining halls, campus vendors, and food truck locations for your next meal.</p></article>
+          <article class="feature-card"><span class="feature-icon" aria-hidden="true">✳</span><h3>Share a student tip</h3><p>Pass along a favorite campus corner and help another Owl discover a good place to land.</p></article>
+        </div>
       </section>
 
-      <div class="workspace">
-        <section class="discover-column" aria-label="Find campus spots">
-          <div class="section-heading">
-            <div><p class="eyebrow">YOUR NEXT GOOD SPOT</p><h2>Find a place to land</h2></div>
-            <span class="result-count" id="result-count">— spots</span>
-          </div>
-
-          <div class="primary-tabs" role="tablist" aria-label="Spot collection">
-            <button class="primary-tab is-active" type="button" role="tab" aria-selected="true" data-tab="study"><span aria-hidden="true">⌕</span> Find a spot</button>
-            <button class="primary-tab" type="button" role="tab" aria-selected="false" data-tab="community"><span aria-hidden="true">✳</span> Community suggestions <span class="tab-count" id="community-count">0</span></button>
-          </div>
-
-          <div class="search-row">
-            <label class="search-box"><span aria-hidden="true">⌕</span><span class="sr-only">Search spots and buildings</span><input id="search-input" type="search" placeholder="Search spots, buildings, or amenities" autocomplete="off" /></label>
-            <button class="button button-outline share-inline" id="share-button" type="button"><span aria-hidden="true">＋</span> Share a spot</button>
-          </div>
-
-          <div class="category-tabs" id="category-tabs" aria-label="Spot category">
-            <button type="button" class="category-chip is-active" data-category="study"><span aria-hidden="true">⌂</span> Study <span class="chip-small">4</span></button>
-            <button type="button" class="category-chip" data-category="food"><span aria-hidden="true">♨</span> Food <span class="chip-small">1</span></button>
-            <button type="button" class="category-chip" data-category="recreation"><span aria-hidden="true">◉</span> Recreation <span class="chip-small">1</span></button>
-          </div>
-
-          <details class="filter-panel" open>
-            <summary><span class="filter-summary-icon" aria-hidden="true">☷</span><span><strong>Make it your kind of spot</strong><small>Choose what matters for this break</small></span><span class="filter-chevron" aria-hidden="true">⌄</span></summary>
-            <div class="filter-content">
-              <div class="filter-grid">
-                <label class="filter-control">Busyness <span class="range-caption" id="busyness-caption">Any level</span><input id="busyness-filter" type="range" min="1" max="5" value="5" /><span class="range-ends"><span>1 · Empty</span><span>5 · Packed</span></span></label>
-                <label class="filter-control">Noise <span class="range-caption" id="noise-caption">Any level</span><input id="noise-filter" type="range" min="1" max="5" value="5" /><span class="range-ends"><span>1 · Quiet</span><span>5 · Loud</span></span></label>
-                <label class="filter-control">Group size<select id="group-filter"><option value="any">Any group size</option><option value="solo">Just me</option><option value="small">Small group</option><option value="large">Larger group</option></select></label>
-                <div class="filter-control amenity-filter-control"><span>Nearby amenities</span><details class="amenity-filter" id="amenity-filter">
-                  <summary id="amenity-filter-summary">Any amenities <span aria-hidden="true">⌄</span></summary>
-                  <div class="amenity-filter-options">
-                    <small class="amenity-filter-hint">Spots must have every selected amenity</small>
-                    <label><input type="checkbox" value="outlets" /><span>Outlets</span></label>
-                    <label><input type="checkbox" value="computers" /><span>Computers</span></label>
-                    <label><input type="checkbox" value="whiteboards" /><span>Whiteboards</span></label>
-                    <label><input type="checkbox" value="books" /><span>Books</span></label>
-                    <label><input type="checkbox" value="games" /><span>Games</span></label>
-                    <label><input type="checkbox" value="food" /><span>Food nearby</span></label>
-                  </div>
-                </details></div>
-              </div>
-              <label class="check-filter"><input id="outlets-filter" type="checkbox" /><span class="custom-check" aria-hidden="true"></span><span>Must have outlets</span></label>
-              <button id="clear-filters" class="clear-filters" type="button">Clear filters</button>
-            </div>
-          </details>
-
-          <div class="list-toolbar"><p id="result-summary">Good places, close by</p><button class="sort-button" id="sort-button" type="button" aria-label="Sort spots by relevance">✦ <span>Best match</span><span aria-hidden="true">⌄</span></button></div>
-
-          <div class="spot-list" id="spot-list" aria-live="polite"></div>
-          <div class="empty-state" id="empty-state" hidden><span aria-hidden="true">⌕</span><h3>No spots match those filters</h3><p>Try opening up the busyness or noise filters.</p><button id="empty-clear" class="button button-outline" type="button">Clear filters</button></div>
-          <p class="data-footnote"><span aria-hidden="true">ⓘ</span> Crowd reports are examples for this prototype. Community suggestions are student-submitted.</p>
-        </section>
-
-        <aside class="map-column" id="map-column" aria-label="Campus map and selected spot">
-          <div class="map-card">
-            <div class="map-topline"><div><p class="eyebrow">TEMPLE UNIVERSITY</p><h2>Campus at a glance</h2></div><button class="map-expand" type="button" id="map-expand" aria-label="Show map view">↗</button></div>
-            <div class="map-canvas" id="map-canvas" aria-label="Illustrative map of Temple campus">
-              <div class="map-grid-lines" aria-hidden="true"></div><div class="map-road road-one" aria-hidden="true"></div><div class="map-road road-two" aria-hidden="true"></div><div class="map-green green-one" aria-hidden="true"></div><div class="map-green green-two" aria-hidden="true"></div>
-              <span class="map-label label-north">NORTH PHILADELPHIA</span><span class="map-label label-walk">LIACOURAS WALK</span><span class="map-label label-polett">POLETT WALK</span><span class="map-label label-campus">TEMPLE UNIVERSITY</span>
-              <div class="map-buildings" aria-hidden="true"><span class="building-shape shape-a"></span><span class="building-shape shape-b"></span><span class="building-shape shape-c"></span><span class="building-shape shape-d"></span><span class="building-shape shape-e"></span><span class="building-shape shape-f"></span><span class="building-shape shape-g"></span><span class="building-shape shape-h"></span></div>
-              <div class="map-markers" id="map-markers"></div>
-              <div class="map-compass" aria-hidden="true"><span>N</span><i>↑</i></div>
-              <span class="map-scale">Illustrative campus map · not to scale</span>
-            </div>
-            <div class="map-legend"><span><i class="legend-dot quiet"></i> Quieter</span><span><i class="legend-dot moderate"></i> Some activity</span><span><i class="legend-dot busy"></i> Busy</span></div>
-            <div class="selected-panel" id="selected-panel"></div>
-          </div>
-          <div class="share-callout"><span class="callout-illustration" aria-hidden="true">✳</span><div><strong>Know a hidden gem?</strong><p>Help another Owl find a spot they’ll love.</p></div><button id="callout-share" class="circle-arrow" type="button" aria-label="Share a campus spot">→</button></div>
-        </aside>
-      </div>
-      <footer class="site-footer"><span>Owl’s Nest · made for the Temple community</span><span>Find your space, one break at a time <span aria-hidden="true">♥</span></span></footer>
+      <section class="landing-invite" aria-label="Explore Owl's Nest">
+        <div><p class="eyebrow">YOUR NEXT GOOD SPOT IS OUT THERE</p><h2>Take a look around.</h2></div>
+        <a class="button button-primary" href="explore.html">Explore the tool <span aria-hidden="true">→</span></a>
+      </section>
+      <p class="landing-disclaimer">Owl’s Nest is a prototype. Crowd reports are sample data and do not show live occupancy.</p>
     </main>
-
-    <div class="mobile-view-toggle" role="group" aria-label="Switch between list and map"><button type="button" class="is-active" data-mobile-view="list">☷ List</button><button type="button" data-mobile-view="map">⌖ Map</button></div>
-
-    <div class="modal-backdrop" id="report-modal" hidden>
-      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="report-title" aria-describedby="report-description">
-        <button class="modal-close" type="button" data-close-modal aria-label="Close report">×</button>
-        <p class="eyebrow"><span class="eyebrow-dot"></span> QUICK CAMPUS CHECK-IN</p>
-        <h2 id="report-title">How’s this spot right now?</h2><p id="report-description" class="modal-description">Your quick check-in helps another Owl pick a place that works.</p>
-        <form id="report-form">
-          <p class="modal-spot" id="report-spot-name"></p>
-          <fieldset class="rating-field"><legend>How busy is it?</legend><div class="rating-options" id="busyness-options"></div><div class="rating-help"><span>Room to spread out</span><span>Nearly full</span></div></fieldset>
-          <fieldset class="rating-field"><legend>How loud is it?</legend><div class="rating-options" id="noise-options"></div><div class="rating-help"><span>Quiet</span><span>Very loud</span></div></fieldset>
-          <label class="optional-note">Anything else? <span>Optional</span><input id="report-note" type="text" maxlength="100" placeholder="e.g. plenty of open tables" /></label>
-          <p class="cooldown-note" id="cooldown-note">Guest report · This prototype uses sample data.</p>
-          <button class="button button-primary modal-submit" type="submit">Share my update <span aria-hidden="true">→</span></button>
-        </form>
-      </section>
-    </div>
-
-    <div class="modal-backdrop" id="suggest-modal" hidden>
-      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="suggest-title">
-        <button class="modal-close" type="button" data-close-modal aria-label="Close suggestion form">×</button>
-        <p class="eyebrow"><span class="eyebrow-dot"></span> SHARE THE GOOD SPOTS</p>
-        <h2 id="suggest-title">Add a campus spot</h2><p class="modal-description">Have a favorite corner? Help another Owl find it.</p>
-        <form id="suggest-form">
-          <label class="form-field">Spot name<input required id="suggest-name" maxlength="60" placeholder="e.g. Quiet corner by the windows" /></label>
-          <label class="form-field">Campus building<input required id="suggest-building" maxlength="80" placeholder="e.g. Wachman Hall" /></label>
-          <label class="form-field">Floor <span class="optional-label">Optional</span><input id="suggest-floor" maxlength="30" placeholder="e.g. 3rd floor" /></label>
-          <fieldset class="amenity-field"><legend>What’s around? <span class="optional-label">Optional</span></legend><div class="amenity-options"><label><input type="checkbox" value="outlets" /><span>Outlets</span></label><label><input type="checkbox" value="computers" /><span>Computers</span></label><label><input type="checkbox" value="whiteboards" /><span>Whiteboards</span></label><label><input type="checkbox" value="books" /><span>Books</span></label><label><input type="checkbox" value="games" /><span>Games</span></label><label><input type="checkbox" value="food" /><span>Food nearby</span></label></div></fieldset>
-          <label class="form-field">A little more detail <span class="optional-label">Optional</span><textarea id="suggest-details" maxlength="180" rows="2" placeholder="What makes this spot useful?"></textarea></label>
-          <p class="cooldown-note">Community suggestion · Demo-only, visible in this session.</p>
-          <button class="button button-primary modal-submit" type="submit">Share this spot <span aria-hidden="true">→</span></button>
-        </form>
-      </section>
-    </div>
-
-    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <footer class="landing-footer"><span>Owl’s Nest · made for the Temple community</span><a href="explore.html">Open the campus finder →</a></footer>
   </body>
 </html>

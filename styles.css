@@ -354,6 +354,66 @@ h1 span { color: var(--temple); }
   .modal { padding: 25px 19px 20px; border-radius: 16px; max-height: 92vh; }
   .modal h2 { font-size: 22px; }
 }
+
+/* Welcome page */
+.landing-page { background: #fffefa; }
+.landing-header { max-width: 1448px; margin: 0 auto; }
+.landing-shell { width: min(100% - 72px, 1190px); margin: 0 auto; }
+.landing-hero { min-height: 510px; display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; gap: 48px; padding: 45px 0 55px; }
+.landing-copy { max-width: 570px; }
+.landing-copy .eyebrow { font-size: 11px; }
+.landing-copy h1 { font-size: clamp(52px, 6vw, 78px); line-height: 1.02; }
+.landing-copy h1 span { color: var(--temple); }
+.landing-description { max-width: 505px; margin: 23px 0 24px; color: #625b55; font-size: 18px; line-height: 1.65; }
+.landing-cta { min-height: 52px; padding: 0 22px; border-radius: 12px; font-size: 15px; }
+.landing-note { margin: 14px 0 0; color: #898078; font-size: 13px; }
+.landing-art { position: relative; min-height: 360px; overflow: hidden; border: 1px solid #ede9e2; border-radius: 28px; background: linear-gradient(145deg, #f7f4ed, #f0f1e8); box-shadow: 0 20px 50px rgba(52,38,26,.08); }
+.landing-art::before, .landing-art::after { position: absolute; content: ''; border-radius: 50%; background: #e4eadc; }
+.landing-art::before { width: 170px; height: 170px; right: -43px; top: 35px; }
+.landing-art::after { width: 130px; height: 130px; left: -38px; bottom: -32px; background: #efe4d3; }
+.art-campus-label { position: absolute; z-index: 1; top: 23px; left: 25px; color: #777c6d; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.art-walk { position: absolute; z-index: 1; height: 23px; border-radius: 20px; background: #fffefa; border: 1px solid #e8e4db; }
+.walk-one { width: 120%; left: -10%; top: 51%; transform: rotate(-18deg); }
+.walk-two { width: 115%; left: -4%; top: 52%; transform: rotate(54deg); }
+.art-building { position: absolute; z-index: 2; display: grid; place-items: center; width: 126px; height: 88px; border: 1px solid #d7cfc2; border-radius: 12px; background: #fffefa; color: #81776c; box-shadow: 0 7px 15px rgba(45,38,28,.07); font-size: 10px; font-weight: 800; letter-spacing: .09em; }
+.building-one { left: 13%; top: 26%; transform: rotate(-7deg); }
+.building-two { right: 12%; top: 39%; transform: rotate(6deg); }
+.building-three { left: 32%; bottom: 13%; transform: rotate(-4deg); }
+.art-pin { position: absolute; z-index: 3; display: grid; place-items: center; width: 42px; height: 42px; border: 3px solid #fff; border-radius: 50% 50% 50% 8px; transform: rotate(-45deg); background: var(--temple); color: #fff; box-shadow: 0 5px 12px rgba(90,37,42,.25); font-size: 17px; }
+.art-pin span { transform: rotate(45deg); }
+.pin-one { top: 20%; left: 46%; }.pin-two { top: 63%; right: 20%; background: #ba8b47; }.pin-three { bottom: 14%; left: 17%; background: #718b69; }
+.art-owl { position: absolute; z-index: 3; right: 13%; bottom: 10%; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; background: #f8e9eb; color: var(--temple); font-size: 24px; }
+.landing-features { padding: 19px 0 40px; }
+.landing-section-heading { margin-bottom: 20px; }
+.landing-section-heading .eyebrow { font-size: 10px; }
+.landing-section-heading h2, .landing-invite h2 { margin: 0; font-size: 30px; letter-spacing: -.045em; }
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 17px; }
+.feature-card { min-height: 210px; padding: 23px; border: 1px solid var(--line); border-radius: 15px; background: #fff; }
+.feature-icon { display: grid; place-items: center; width: 42px; height: 42px; margin-bottom: 20px; border-radius: 12px; background: #f8eded; color: var(--temple); font-size: 22px; }
+.feature-card:nth-child(2) .feature-icon { background: #f5efdf; color: #946e32; }
+.feature-card:nth-child(3) .feature-icon { background: #edf2e9; color: #56714f; }
+.feature-card h3 { margin: 0 0 9px; font-size: 17px; }
+.feature-card p { margin: 0; color: #726b64; font-size: 14px; line-height: 1.6; }
+.landing-invite { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 12px 0 18px; padding: 24px 28px; border-radius: 16px; background: #f8f2ed; }
+.landing-invite .eyebrow { margin-bottom: 7px; font-size: 9px; }
+.landing-invite h2 { font-size: 24px; }
+.landing-invite .button { flex: none; }
+.landing-disclaimer { margin: 0 0 30px; color: #8a8179; font-size: 12px; }
+.landing-footer { display: flex; justify-content: space-between; gap: 16px; max-width: 1190px; margin: 0 auto; padding: 18px 0 25px; border-top: 1px solid #efebe7; color: #827a73; font-size: 12px; }
+.landing-footer a { color: var(--temple); font-weight: 650; text-decoration: none; }
+@media (max-width: 800px) {
+  .landing-header { padding: 0 22px; }
+  .landing-shell { width: min(100% - 44px, 600px); }
+  .landing-hero { min-height: 0; grid-template-columns: 1fr; gap: 32px; padding: 62px 0 40px; }
+  .landing-copy h1 { font-size: clamp(48px, 11vw, 68px); }
+  .landing-description { font-size: 16px; }
+  .landing-art { min-height: 320px; }
+  .feature-grid { grid-template-columns: 1fr; gap: 11px; }
+  .feature-card { min-height: auto; padding: 19px; }
+  .feature-icon { margin-bottom: 14px; }
+  .landing-invite { align-items: flex-start; flex-direction: column; }
+  .landing-footer { width: min(100% - 44px, 600px); flex-direction: column; }
+}
 @media (max-width: 380px) {
   .site-header { padding: 0 12px; }
   .page-shell { padding: 0 12px; }
@@ -365,4 +425,49 @@ h1 span { color: var(--temple); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Clearer campus map and dining directory. */
+.map-canvas { min-height: 390px; background: #f2f2f0; }
+.map-canvas::before { display: none; }
+.map-canvas iframe { display: block; width: 100%; height: 390px; border: 0; }
+.map-attribution { margin: 0; padding: 9px 15px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+.map-attribution a, .directory-source { color: var(--temple); font-weight: 600; }
+.selected-panel { display: none; }
+.map-expand { font-size: 17px; }
+.hero-note { display: none; }
+.hero { min-height: 190px; }
+.map-topline h2 { font-size: 18px; }
+.map-topline .eyebrow, .section-heading .eyebrow { font-size: 10px; }
+.primary-tab, .filter-panel summary strong, .filter-control, .category-chip { font-size: 12px; }
+.filter-panel summary small, .search-box input, .demo-banner { font-size: 12px; }
+.spot-type, .spot-building, .freshness, .noise-label, .report-count, .floor-row label, .floor-select, .spot-tag, .spot-subline, .report-button { font-size: 11px; }
+.spot-title { font-size: 16px; }
+.spot-card { min-height: auto; }
+.spot-content { padding: 16px; }
+.spot-accent { width: 4px; }
+.data-footnote { font-size: 11px; }
+.dining-directory { margin-top: 38px; padding: 25px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.dining-directory .section-heading { margin-bottom: 18px; }
+.dining-directory .section-heading h2 { margin: 0; font-size: 24px; letter-spacing: -.04em; }
+.directory-source { font-size: 14px; text-decoration: none; white-space: nowrap; }
+.dining-groups { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.dining-group { padding: 17px; border-radius: 11px; background: var(--soft); }
+.dining-group h3 { margin: 0 0 12px; font-size: 16px; }
+.dining-group ul { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.dining-group li { color: #403a35; font-size: 14px; line-height: 1.4; }
+.dining-group li span { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+.group-map-link { display: inline-block; margin-top: 14px; color: var(--temple); font-size: 12px; font-weight: 650; text-decoration: none; }
+.group-map-link:hover, .directory-source:hover, .map-attribution a:hover { text-decoration: underline; }
+@media (max-width: 980px) {
+  .map-canvas { min-height: 305px; }
+  .map-canvas iframe { height: 305px; }
+}
+@media (max-width: 720px) {
+  .map-canvas { min-height: min(55vh, 410px); }
+  .map-canvas iframe { height: min(55vh, 410px); }
+  .dining-directory { margin-top: 25px; padding: 17px; }
+  .dining-groups { grid-template-columns: 1fr; gap: 10px; }
+  .dining-directory .section-heading h2 { font-size: 20px; }
+  .dining-group { padding: 14px; }
 }
