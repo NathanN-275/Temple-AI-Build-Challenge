@@ -1,5 +1,6 @@
 export const REPORT_STALE_AFTER_MS = 60 * 60 * 1000;
 export const REPORT_COOLDOWN_MS = 15 * 60 * 1000;
+const groupRanges = { '1': ['solo'], '2-4': ['small'], '5+': ['large'] };
 
 export function freshness(timestamp, now = Date.now()) {
   if (!timestamp) return { label: 'No report yet', stale: false, unknown: true };
@@ -23,6 +24,17 @@ export function noiseLabel(value) {
   return ['Quiet', 'Soft', 'Conversational', 'Lively', 'Very loud'][value - 1] ?? 'Noise unknown';
 }
 
+export function crowdPattern(floors) {
+  const reportedFloors = floors.filter((floor) => Number.isFinite(floor.busyness) && floor.reportCount > 0);
+  const reports = reportedFloors.reduce((total, floor) => total + floor.reportCount, 0);
+  if (!reports) return { level: 0, label: 'No sample yet', reports: 0 };
+
+  const average = reportedFloors.reduce((total, floor) => total + floor.busyness * floor.reportCount, 0) / reports;
+  if (average < 2.5) return { level: 1, label: 'Usually quieter', reports };
+  if (average < 3.6) return { level: 2, label: 'Mixed crowd', reports };
+  return { level: 3, label: 'Usually busier', reports };
+}
+
 export function distanceKm(from, to) {
   if (!from || !to) return null;
   const radians = (degrees) => (degrees * Math.PI) / 180;
@@ -41,10 +53,7 @@ export function getMatchingFloors(spot, filters) {
   if (!matchesQuery) return [];
 
   return spot.floors.filter((item) => {
-    if (filters.busyness < 5 && (item.busyness === null || item.busyness > filters.busyness)) return false;
-    if (filters.noise < 5 && (item.noise === null || item.noise > filters.noise)) return false;
-    if (filters.group !== 'any' && !item.groups.includes(filters.group)) return false;
-    if (filters.outlets && !item.outlets) return false;
+    if (filters.group !== 'any' && !groupRanges[filters.group]?.some((group) => item.groups.includes(group))) return false;
     if (!filters.amenities.every((amenity) => item.amenities.includes(amenity))) return false;
     return true;
   });

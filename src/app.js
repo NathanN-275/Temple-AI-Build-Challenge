@@ -1,17 +1,27 @@
 import { amenityLabels, initialSuggestions, spots as seedSpots } from './data.js';
-import { busynessLabel, formatDistance, freshness, getVisibleSpots, noiseLabel, REPORT_COOLDOWN_MS } from './domain.js';
+import { crowdPattern, formatDistance, freshness, getVisibleSpots, REPORT_COOLDOWN_MS } from './domain.js';
 
 const copy = (value) => JSON.parse(JSON.stringify(value));
+const foodTruckSourceUrl = 'https://www.temple.edu/life-temple/housing-dining/temple-food-trucks';
+const diningSourceUrl = 'https://www.temple.edu/life-temple/housing-dining/dining-options';
+const mapIconPaths = {
+  study: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16M8 7h8M8 11h8"/>',
+  academic: '<path d="m14 4 6 6M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11zM13 5l6 6"/>',
+  dining: '<path d="M4 13h16a8 8 0 0 1-16 0zM3 13h18M8 8c-1-1 1-2 0-3M12 8c-1-1 1-2 0-3M16 8c-1-1 1-2 0-3"/>',
+  'food-trucks': '<path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>',
+  recreation: '<path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/>',
+  community: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>',
+};
+const mapIconMarkup = (category) => `<svg viewBox="0 0 24 24" aria-hidden="true">${mapIconPaths[category] ?? mapIconPaths.study}</svg>`;
 const state = {
   spots: copy([...seedSpots, ...initialSuggestions]),
+  toolView: 'database',
   tab: 'study',
-  category: 'study',
+  category: 'all',
+  mapCategories: ['study', 'academic', 'dining', 'food-trucks', 'recreation', 'community'],
   query: '',
-  busyness: 5,
-  noise: 5,
   group: 'any',
   amenities: [],
-  outlets: false,
   selectedSpotId: 'charles-library',
   selectedFloors: { 'charles-library': 'charles-4' },
   userCoordinates: null,
@@ -23,16 +33,8 @@ const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const visibleEntries = () => getVisibleSpots(state.spots, {
-  query: state.query, busyness: state.busyness, noise: state.noise, group: state.group,
-  amenities: state.amenities, outlets: state.outlets, category: state.category,
+  query: state.query, group: state.group, amenities: state.amenities, category: state.category,
 }, { tab: state.tab, sortByDistance: state.sortByDistance, userCoordinates: state.userCoordinates });
-
-function statusTone(value) {
-  if (value === null || value === undefined) return 'unknown';
-  if (value <= 2) return 'quiet';
-  if (value === 3) return 'some';
-  return 'busy';
-}
 
 function currentFloor(entry) {
   const savedId = state.selectedFloors[entry.spot.id];
@@ -60,31 +62,49 @@ function tagsMarkup(floor, community = false) {
 function spotMarkup(entry) {
   const { spot, matchingFloors, distance } = entry;
   const floor = currentFloor(entry);
+  const crowd = crowdPattern(spot.floors);
   const reportFreshness = freshness(floor.updatedAt);
-  const tone = statusTone(floor.busyness);
+  const tone = crowd.level === 0 ? 'unknown' : crowd.level === 1 ? 'quiet' : crowd.level === 2 ? 'some' : 'busy';
+  const isFoodListing = spot.category === 'food';
+  const isFoodTruck = spot.type === 'Food truck';
   const selected = state.selectedSpotId === spot.id ? ' is-selected' : '';
   const floorOptions = matchingFloors.map((item) => `<option value="${escapeHtml(item.id)}" ${item.id === floor.id ? 'selected' : ''}>${escapeHtml(item.label)} · ${escapeHtml(item.area)}</option>`).join('');
-  const floorSelector = spot.floors.length > 1 || matchingFloors.length > 1
+  const floorSelector = isFoodListing ? ''
+    : spot.floors.length > 1 || matchingFloors.length > 1
     ? `<div class="floor-row"><label for="floor-${escapeHtml(spot.id)}">Floor</label><select class="floor-select" id="floor-${escapeHtml(spot.id)}" data-floor-select="${escapeHtml(spot.id)}">${floorOptions}</select></div>`
     : `<div class="floor-row"><label>Area</label><span class="spot-building">${escapeHtml(floor.label)} · ${escapeHtml(floor.area)}</span></div>`;
-  const status = floor.busyness === null
-    ? '<span class="status-pill status-unknown"><i></i>No report yet</span>'
-    : `<span class="status-pill status-${tone}"><i></i>${escapeHtml(busynessLabel(floor.busyness))}</span><span class="noise-label">Noise ${floor.noise}/5 · ${escapeHtml(noiseLabel(floor.noise))}</span>`;
-  const count = floor.reportCount ? `<span class="report-count">${floor.reportCount} sample ${floor.reportCount === 1 ? 'report' : 'reports'}</span>` : '';
+  const status = isFoodListing ? '' : `<div class="typical-crowd">
+    <span class="typical-crowd-title">Typical crowd</span>
+    <span class="crowd-meter crowd-level-${tone}" role="img" aria-label="${escapeHtml(crowd.label)}"><i></i><i></i><i></i></span>
+    <strong>${escapeHtml(crowd.label)}</strong>
+    ${crowd.reports ? `<span class="report-count">Based on ${crowd.reports} sample ${crowd.reports === 1 ? 'report' : 'reports'}</span>` : ''}
+  </div>`;
   const subline = floor.lastNote || floor.detail || spot.description;
   const updateText = cooldownText(floor.id);
+  const buildingLine = !isFoodListing || distance !== null
+    ? `<p class="spot-building">${isFoodListing ? '' : escapeHtml(spot.building)}${distance !== null ? `${isFoodListing ? '' : ' · '}${escapeHtml(formatDistance(distance))}` : ''}</p>`
+    : '';
+  const freshnessMarkup = isFoodListing || !crowd.reports ? '' : `<span class="freshness${reportFreshness.stale ? ' is-stale' : ''}${reportFreshness.unknown ? ' is-unknown' : ''}">${escapeHtml(reportFreshness.label)}</span>`;
+  const tags = isFoodListing ? '' : `<div class="spot-tags">${tagsMarkup(floor, spot.community)}</div>`;
+  const foodDetails = isFoodListing && spot.menu ? `<div class="food-truck-details">
+    <p><strong>Serves</strong> ${escapeHtml(spot.menu)}</p>
+    ${isFoodTruck ? '<p><strong>Hours</strong> Not listed on Temple’s truck map; schedules vary by vendor.</p>' : ''}
+    <a href="${isFoodTruck ? foodTruckSourceUrl : (spot.menuUrl ?? diningSourceUrl)}" target="_blank" rel="noreferrer">${isFoodTruck ? 'Check Temple’s truck map' : 'Check Temple dining options'} ↗</a>
+  </div>` : '';
+  const actions = isFoodListing ? '' : `<div class="spot-actions"><span class="spot-subline" title="${escapeHtml(subline)}">${escapeHtml(subline)}</span><button class="report-button" data-report="${escapeHtml(spot.id)}" type="button" ${remainingCooldown(floor.id) ? 'disabled' : ''}>${updateText ? escapeHtml(updateText) : 'Update this spot →'}</button></div>`;
   return `<article class="spot-card${selected}" data-spot-card="${escapeHtml(spot.id)}">
     <span class="spot-accent status-${tone}" aria-hidden="true"></span>
     <div class="spot-content">
       <div class="spot-topline"><div class="spot-title-wrap">
         <div class="spot-overline"><span class="spot-type">${escapeHtml(spot.type)}</span><span>·</span><span>${escapeHtml(spot.area)}</span></div>
         <button class="spot-title spot-title-button" data-select-spot="${escapeHtml(spot.id)}" type="button">${escapeHtml(spot.name)}</button>
-        <p class="spot-building">${escapeHtml(spot.building)}${distance !== null ? ` · ${escapeHtml(formatDistance(distance))}` : ''}</p>
-      </div><span class="freshness${reportFreshness.stale ? ' is-stale' : ''}${reportFreshness.unknown ? ' is-unknown' : ''}">${escapeHtml(reportFreshness.label)}</span></div>
-      <div class="spot-status-row">${status}${count}</div>
+        ${buildingLine}
+      </div>${freshnessMarkup}</div>
+      ${status}
+      ${foodDetails}
       ${floorSelector}
-      <div class="spot-tags">${tagsMarkup(floor, spot.community)}</div>
-      <div class="spot-actions"><span class="spot-subline" title="${escapeHtml(subline)}">${escapeHtml(subline)}</span><button class="report-button" data-report="${escapeHtml(spot.id)}" type="button" ${remainingCooldown(floor.id) ? 'disabled' : ''}>${updateText ? escapeHtml(updateText) : 'Update this spot →'}</button></div>
+      ${tags}
+      ${actions}
     </div>
   </article>`;
 }
@@ -92,7 +112,7 @@ function spotMarkup(entry) {
 function updateCategoryUi() {
   const community = state.tab === 'community';
   $('#category-tabs').hidden = community;
-  $('#search-input').placeholder = community ? 'Search student suggestions' : 'Search spots, buildings, or amenities';
+  $('#search-input').placeholder = community ? 'Search suggestions' : 'Search locations, buildings, or amenities';
   $$('.primary-tab').forEach((button) => {
     const active = button.dataset.tab === state.tab;
     button.classList.toggle('is-active', active);
@@ -100,11 +120,11 @@ function updateCategoryUi() {
   });
   $$('.category-chip').forEach((button) => button.classList.toggle('is-active', button.dataset.category === state.category));
   $$('.category-chip').forEach((button) => {
-    const count = state.spots.filter((spot) => !spot.community && spot.category === button.dataset.category).length;
+    const count = state.spots.filter((spot) => !spot.community && (button.dataset.category === 'all' || spot.category === button.dataset.category)).length;
     const countLabel = $('.chip-small', button);
     if (countLabel) countLabel.textContent = String(count);
   });
-  $('#result-summary').textContent = community ? 'Hidden gems shared by students' : state.sortByDistance ? 'Sorted from your location' : 'Good places, close by';
+  $('#result-summary').textContent = community ? 'Student suggestions' : state.sortByDistance ? 'Sorted from your location' : 'Temple campus locations';
   const sortLabel = state.sortByDistance ? 'Nearest first' : 'Best match';
   $('#sort-button').innerHTML = `${state.sortByDistance ? '⌖' : '✦'} <span>${sortLabel}</span><span aria-hidden="true">⌄</span>`;
   $('#sort-button').setAttribute('aria-label', state.userCoordinates ? `Sort spots: ${state.sortByDistance ? 'nearest first' : 'best match'}` : 'Sort by distance from your location');
@@ -127,8 +147,8 @@ function renderList(entries) {
   if (state.tab === 'community') {
     const intro = document.createElement('p');
     intro.className = 'community-intro';
-    intro.innerHTML = '<strong>Local knowledge lives here.</strong> Student-submitted spaces can be useful little discoveries. Crowd reports and amenities may be unverified.';
-    $('#search-input').parentElement.insertAdjacentElement('afterend', intro);
+    intro.textContent = 'Student-submitted · Details may be unverified';
+    $('.search-row').insertAdjacentElement('afterend', intro);
   }
   list.innerHTML = entries.map(spotMarkup).join('');
   list.hidden = count === 0;
@@ -141,7 +161,6 @@ function selectedEntry(entries) {
 
 let campusMap;
 let campusMarkerLayer;
-let mapMode = 'spots';
 let campusMapFitted = false;
 
 function selectMapSpot(spotId) {
@@ -150,89 +169,121 @@ function selectMapSpot(spotId) {
   state.selectedSpotId = spot.id;
   state.tab = spot.community ? 'community' : 'study';
   state.category = spot.community ? 'all' : spot.category;
+  state.query = '';
+  $('#search-input').value = '';
+  state.toolView = 'database';
   render();
+  document.querySelector(`[data-spot-card="${CSS.escape(spotId)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function mapCategoriesForSpot(spot) {
+  if (spot.mapCategories) return spot.mapCategories;
+  if (spot.community) return ['study', 'community'];
+  if (spot.category === 'food') return ['dining'];
+  if (spot.category === 'recreation') return ['recreation'];
+  return ['study'];
+}
+
+function foodSpotPopupMarkup(spot) {
+  const isFoodTruck = spot.type === 'Food truck';
+  return `<div class="food-truck-popup">
+    <strong>${escapeHtml(spot.name)}</strong>
+    <p><b>Serves:</b> ${escapeHtml(spot.menu ?? 'Check with the vendor for current menu details.')}</p>
+    ${isFoodTruck ? '<p><b>Hours:</b> Not listed on Temple’s truck map; schedules vary by vendor.</p>' : ''}
+    <a href="${isFoodTruck ? foodTruckSourceUrl : (spot.menuUrl ?? diningSourceUrl)}" target="_blank" rel="noreferrer">${isFoodTruck ? 'Temple food truck info' : 'Temple dining options'} ↗</a>
+  </div>`;
+}
+
+function updateToolView() {
+  const isMap = state.toolView === 'map';
+  $('#database-view').hidden = isMap;
+  $('#map-view').hidden = !isMap;
+  $$('.tool-view-tab').forEach((button) => {
+    const active = button.dataset.toolView === state.toolView;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-selected', String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
 }
 
 function initializeCampusMap() {
   const target = $('#campus-map');
   if (!target || !target.offsetWidth || !window.L || campusMap) return;
-  campusMap = window.L.map(target, { scrollWheelZoom: false }).setView([39.98125, -75.15575], 16);
+  campusMap = window.L.map(target, { scrollWheelZoom: true, touchZoom: true, maxZoom: 21 }).setView([39.98125, -75.15575], 16);
   window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
+    maxNativeZoom: 19,
+    maxZoom: 21,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
   }).addTo(campusMap);
   campusMarkerLayer = window.L.layerGroup().addTo(campusMap);
+  campusMap.on('zoomend', renderCampusMarkers);
 }
 
 function renderCampusMarkers() {
   initializeCampusMap();
   if (!campusMap || !campusMarkerLayer) return;
   campusMarkerLayer.clearLayers();
-  const foodGroups = new Map();
-  const categoryIcons = { study: '⌂', food: '♨', recreation: '◉' };
+  const markerGroups = new Map();
+  const zoom = campusMap.getZoom();
+  const truckGridSize = zoom >= 19 ? 0 : zoom >= 18 ? 0.00015 : zoom >= 17 ? 0.00035 : 0.0008;
   const addMarker = (spot, count = 1, selected = spot.id === state.selectedSpotId) => {
     if (!spot.coordinates) return;
+    const category = mapCategoriesForSpot(spot).find((item) => state.mapCategories.includes(item)) ?? 'study';
     const icon = window.L.divIcon({
       className: 'campus-map-icon',
-      html: `<span class="campus-map-pin pin-${escapeHtml(spot.category)}${count > 1 ? ' has-count' : ''}${selected ? ' is-selected' : ''}">${count > 1 ? count : categoryIcons[spot.category] ?? '⌖'}</span>`,
+      html: `<span class="campus-map-pin pin-${escapeHtml(category)}${count > 1 ? ' has-count' : ''}${selected ? ' is-selected' : ''}">${count > 1 ? `<span class="marker-count" aria-label="${count} locations">${count}</span>` : mapIconMarkup(category)}</span>`,
       iconSize: [38, 42],
       iconAnchor: [19, 39],
     });
     const marker = window.L.marker(spot.coordinates, { icon }).addTo(campusMarkerLayer);
     if (count === 1) {
-      marker.bindTooltip(escapeHtml(spot.name));
-      marker.on('click', () => selectMapSpot(spot.id));
+      if (spot.category === 'food') {
+        marker.bindPopup(foodSpotPopupMarkup(spot));
+      } else {
+        marker.bindTooltip(escapeHtml(spot.name));
+        marker.on('click', () => selectMapSpot(spot.id));
+      }
     }
     return marker;
   };
 
-  state.spots.filter((spot) => spot.coordinates).forEach((spot) => {
-    if (spot.mapGroup) {
-      if (!foodGroups.has(spot.mapGroup)) foodGroups.set(spot.mapGroup, []);
-      foodGroups.get(spot.mapGroup).push(spot);
-      return;
-    }
-    addMarker(spot);
+  state.spots.filter((spot) => spot.coordinates && mapCategoriesForSpot(spot).some((category) => state.mapCategories.includes(category))).forEach((spot) => {
+    const [latitude, longitude] = spot.coordinates;
+    const truckCluster = mapCategoriesForSpot(spot).includes('food-trucks') && truckGridSize
+      ? `truck:${Math.round(latitude / truckGridSize)}:${Math.round(longitude / truckGridSize)}`
+      : '';
+    const group = spot.mapGroup ? `area:${spot.mapGroup}` : truckCluster || `spot:${spot.id}`;
+    if (!markerGroups.has(group)) markerGroups.set(group, []);
+    markerGroups.get(group).push(spot);
   });
 
-  foodGroups.forEach((spots) => {
+  markerGroups.forEach((spots) => {
     const marker = addMarker(spots[0], spots.length, spots.some((spot) => spot.id === state.selectedSpotId));
-    const links = spots.map((spot) => `<li><button class="map-popup-spot" type="button" data-map-spot="${escapeHtml(spot.id)}">${escapeHtml(spot.name)}</button></li>`).join('');
-    marker?.bindPopup(`<strong>${escapeHtml(spots[0].area)} · ${spots.length} vendors</strong><ul class="map-popup-list">${links}</ul>`);
-    marker?.on('popupopen', ({ popup }) => popup.getElement()?.querySelectorAll('[data-map-spot]').forEach((button) => button.addEventListener('click', () => selectMapSpot(button.dataset.mapSpot))));
+    if (spots.length < 2) return;
+    const links = spots.map((spot) => `<li><button class="map-popup-spot" type="button" data-map-spot="${escapeHtml(spot.id)}"><strong>${escapeHtml(spot.name)}</strong>${spot.category === 'food' ? `<small>Serves: ${escapeHtml(spot.menu ?? 'Check with the vendor for current menu details.')}</small>` : ''}</button></li>`).join('');
+    const title = spots[0].mapGroup ? `${spots[0].area} · ${spots.length} locations` : `${spots.length} nearby food trucks`;
+    marker?.bindPopup(`<strong>${escapeHtml(title)}</strong><ul class="map-popup-list">${links}</ul>`);
+    marker?.on('popupopen', ({ popup }) => popup.getElement()?.querySelectorAll('[data-map-spot]').forEach((button) => button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const selectedSpot = state.spots.find((spot) => spot.id === button.dataset.mapSpot);
+      if (!selectedSpot) return;
+      if (selectedSpot.category === 'food') {
+        marker.setPopupContent(foodSpotPopupMarkup(selectedSpot));
+        marker.openPopup();
+      } else {
+        selectMapSpot(selectedSpot.id);
+      }
+    })));
   });
   if (!campusMapFitted) {
     const locations = state.spots.filter((spot) => spot.coordinates).map((spot) => spot.coordinates);
-    if (locations.length) campusMap.fitBounds(window.L.latLngBounds(locations), { padding: [30, 30], maxZoom: 16 });
     campusMapFitted = true;
+    if (locations.length) campusMap.fitBounds(window.L.latLngBounds(locations), { padding: [30, 30], maxZoom: 16 });
   }
-}
-
-function renderMap(entries) {
-  renderCampusMarkers();
-  const selected = selectedEntry(entries);
-  const panel = $('#selected-panel');
-  if (!selected) {
-    panel.innerHTML = '<div class="selected-empty">Choose a spot to see its details.</div>';
-    return;
-  }
-  const floor = currentFloor(selected);
-  const status = floor.busyness === null ? 'No crowd report yet' : `${busynessLabel(floor.busyness)} · Noise ${floor.noise}/5`;
-  const pinNote = selected.spot.position ? `${selected.spot.area}${selected.distance !== null ? ` · ${formatDistance(selected.distance)}` : ''}` : 'Building entered by student · no map pin yet';
-  const cooldown = cooldownText(floor.id);
-  const floorControl = selected.matchingFloors.length > 1
-    ? `<label class="selected-floor-control">Floor<select data-map-floor-select="${escapeHtml(selected.spot.id)}">${selected.matchingFloors.map((item) => `<option value="${escapeHtml(item.id)}" ${item.id === floor.id ? 'selected' : ''}>${escapeHtml(item.label)} · ${escapeHtml(item.area)}</option>`).join('')}</select></label>`
-    : `<div class="selected-floor-control"><span>Floor</span><strong>${escapeHtml(floor.label)}</strong></div>`;
-  panel.innerHTML = `<div class="photo-placeholder" aria-label="Photo placeholder"><span aria-hidden="true">▧</span><span>Photo preview placeholder · coming later</span></div>
-    <div class="selected-heading"><div><h3>${escapeHtml(selected.spot.name)}</h3><p>${escapeHtml(selected.spot.building)}</p></div><span class="status-pill status-${statusTone(floor.busyness)}"><i></i>${escapeHtml(status)}</span></div>
-    ${floorControl}
-    <div class="selected-detail"><span aria-hidden="true">⌖</span><span>${escapeHtml(pinNote)}</span></div>
-    <div class="selected-detail"><span aria-hidden="true">◷</span><span><strong>${escapeHtml(freshness(floor.updatedAt).label)}</strong>${floor.reportCount ? ` · ${floor.reportCount} sample reports` : ''}</span></div>
-    <div class="selected-detail"><span aria-hidden="true">✳</span><span>${escapeHtml(floor.lastNote || floor.detail || selected.spot.description)}</span></div>
-    <div class="selected-actions"><button class="button button-primary" data-report="${escapeHtml(selected.spot.id)}" type="button" ${cooldown ? 'disabled' : ''}>${cooldown ? escapeHtml(cooldown) : 'Update this spot'}</button></div>`;
 }
 
 function render() {
+  updateToolView();
   updateCategoryUi();
   updateAmenitySummary();
   const entries = visibleEntries();
@@ -244,7 +295,7 @@ function render() {
     }
   }
   renderList(entries);
-  renderMap(entries);
+  renderCampusMarkers();
 }
 
 function setSelectedFloor(spotId, floorId) {
@@ -289,8 +340,7 @@ function openReport(spotId) {
   if (!state.selectedFloors[spot.id]) state.selectedFloors[spot.id] = spot.floors[0].id;
   const floor = spot.floors.find((item) => item.id === state.selectedFloors[spot.id]) ?? spot.floors[0];
   $('#report-spot-name').textContent = `${spot.name} · ${floor.label}`;
-  $('#busyness-options').innerHTML = ratingButtons('report-busyness', floor.busyness ?? 3, ['Empty', 'Open', 'Some', 'Busy', 'Packed']);
-  $('#noise-options').innerHTML = ratingButtons('report-noise', floor.noise ?? 2, ['Quiet', 'Soft', 'Talk', 'Lively', 'Loud']);
+  $('#busyness-options').innerHTML = ratingButtons('report-busyness', floor.busyness ?? 3, ['Empty', 'Lots of room', 'Some seats open', 'Almost full', 'Full']);
   $('#report-note').value = '';
   const remaining = remainingCooldown(floor.id);
   $('#cooldown-note').textContent = remaining
@@ -319,7 +369,7 @@ function requestLocation() {
     button.removeAttribute('aria-busy');
     state.userCoordinates = [position.coords.latitude, position.coords.longitude];
     state.sortByDistance = true;
-    const nearest = [...state.spots].map((spot) => ({ spot, distance: spot.coordinates ? getVisibleSpots([spot], { query: '', busyness: 5, noise: 5, group: 'any', amenities: [], outlets: false, category: 'all' }, { tab: spot.community ? 'community' : 'study', userCoordinates: state.userCoordinates })[0]?.distance : null }))
+    const nearest = [...state.spots].map((spot) => ({ spot, distance: spot.coordinates ? getVisibleSpots([spot], { query: '', group: 'any', amenities: [], category: 'all' }, { tab: spot.community ? 'community' : 'study', userCoordinates: state.userCoordinates })[0]?.distance : null }))
       .filter((item) => item.distance !== null).sort((a, b) => a.distance - b.distance)[0];
     if (nearest) {
       state.tab = nearest.spot.community ? 'community' : 'study';
@@ -347,19 +397,11 @@ function requestLocation() {
 
 function clearFilters() {
   state.query = '';
-  state.busyness = 5;
-  state.noise = 5;
   state.group = 'any';
   state.amenities = [];
-  state.outlets = false;
   $('#search-input').value = '';
-  $('#busyness-filter').value = '5';
-  $('#noise-filter').value = '5';
   $('#group-filter').value = 'any';
   $$('.amenity-filter-options input', $('#amenity-filter')).forEach((input) => { input.checked = false; });
-  $('#outlets-filter').checked = false;
-  $('#busyness-caption').textContent = 'Any level';
-  $('#noise-caption').textContent = 'Any level';
   render();
 }
 
@@ -372,19 +414,7 @@ function switchTab(tab) {
   render();
 }
 
-function updateRatingFilter(type, value) {
-  const numericValue = Number(value);
-  state[type] = numericValue;
-  const captions = type === 'busyness'
-    ? ['Nearly empty', 'Mostly open', 'Some people', 'Busy', 'Any level']
-    : ['Very quiet', 'Soft', 'Conversational', 'Lively', 'Any level'];
-  $(`#${type}-caption`).textContent = captions[numericValue - 1];
-  render();
-}
-
 $('#search-input').addEventListener('input', (event) => { state.query = event.target.value; render(); });
-$('#busyness-filter').addEventListener('input', (event) => updateRatingFilter('busyness', event.target.value));
-$('#noise-filter').addEventListener('input', (event) => updateRatingFilter('noise', event.target.value));
 $('#group-filter').addEventListener('change', (event) => { state.group = event.target.value; render(); });
 $('#amenity-filter').addEventListener('change', (event) => {
   const option = event.target.closest('input[type="checkbox"]');
@@ -392,7 +422,6 @@ $('#amenity-filter').addEventListener('change', (event) => {
   state.amenities = $$('.amenity-filter-options input:checked', $('#amenity-filter')).map((input) => input.value);
   render();
 });
-$('#outlets-filter').addEventListener('change', (event) => { state.outlets = event.target.checked; render(); });
 $('#clear-filters').addEventListener('click', clearFilters);
 $('#empty-clear').addEventListener('click', clearFilters);
 
@@ -406,7 +435,6 @@ $('#sort-button').addEventListener('click', () => {
 });
 $('#share-button').addEventListener('click', openSuggest);
 $('#header-suggest').addEventListener('click', openSuggest);
-$('#callout-share').addEventListener('click', openSuggest);
 
 $('#spot-list').addEventListener('click', (event) => {
   const reportButton = event.target.closest('[data-report]');
@@ -429,28 +457,34 @@ $('#spot-list').addEventListener('change', (event) => {
   if (select) setSelectedFloor(select.dataset.floorSelect, select.value);
 });
 
-$$('[data-map-view]').forEach((button) => button.addEventListener('click', () => {
-  mapMode = button.dataset.mapView;
-  const trucksActive = mapMode === 'trucks';
-  $('#campus-map').hidden = trucksActive;
-  $('#truck-map').hidden = !trucksActive;
-  $$('[data-map-view]').forEach((item) => {
-    const active = item === button;
-    item.classList.toggle('is-active', active);
-    item.setAttribute('aria-selected', String(active));
-  });
-  if (!trucksActive) setTimeout(() => campusMap?.invalidateSize(), 0);
+$$('.tool-view-tab').forEach((button) => button.addEventListener('click', () => {
+  state.toolView = button.dataset.toolView;
+  render();
+  if (state.toolView === 'map') requestAnimationFrame(() => campusMap?.invalidateSize());
 }));
 
-$('#selected-panel').addEventListener('click', (event) => {
-  const report = event.target.closest('[data-report]');
-  if (report && !report.disabled) { openReport(report.dataset.report); return; }
+$('.tool-view-tabs').addEventListener('keydown', (event) => {
+  const tabs = $$('.tool-view-tab');
+  const currentIndex = tabs.indexOf(document.activeElement);
+  const nextIndex = event.key === 'ArrowRight' || event.key === 'ArrowDown'
+    ? (currentIndex + 1) % tabs.length
+    : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+      ? (currentIndex - 1 + tabs.length) % tabs.length
+      : event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? tabs.length - 1
+          : -1;
+  if (nextIndex < 0) return;
+  event.preventDefault();
+  tabs[nextIndex].focus();
+  tabs[nextIndex].click();
 });
 
-$('#selected-panel').addEventListener('change', (event) => {
-  const select = event.target.closest('[data-map-floor-select]');
-  if (select) setSelectedFloor(select.dataset.mapFloorSelect, select.value);
-});
+$$('[data-map-category]').forEach((input) => input.addEventListener('change', () => {
+  state.mapCategories = $$('[data-map-category]:checked').map((checkbox) => checkbox.dataset.mapCategory);
+  renderCampusMarkers();
+}));
 
 $('#report-form').addEventListener('submit', (event) => {
   event.preventDefault();
@@ -459,10 +493,8 @@ $('#report-form').addEventListener('submit', (event) => {
   const { spot, floor } = selection;
   if (remainingCooldown(floor.id)) return;
   const busyness = Number($('input[name="report-busyness"]:checked', event.currentTarget)?.value);
-  const noise = Number($('input[name="report-noise"]:checked', event.currentTarget)?.value);
-  if (!busyness || !noise) return;
+  if (!busyness) return;
   floor.busyness = busyness;
-  floor.noise = noise;
   floor.updatedAt = new Date().toISOString();
   floor.reportCount += 1;
   floor.lastNote = $('#report-note').value.trim();
@@ -506,27 +538,6 @@ $$('[data-close-modal]').forEach((button) => button.addEventListener('click', ()
 $$('.modal-backdrop').forEach((backdrop) => backdrop.addEventListener('click', (event) => { if (event.target === backdrop) setModal(backdrop.id, false); }));
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') $$('.modal-backdrop:not([hidden])').forEach((modal) => setModal(modal.id, false));
-});
-
-$$('[data-mobile-view]').forEach((button) => button.addEventListener('click', () => {
-  const showMap = button.dataset.mobileView === 'map';
-  document.body.classList.toggle('mobile-map-active', showMap);
-  $$('[data-mobile-view]').forEach((item) => item.classList.toggle('is-active', item === button));
-  if (showMap) {
-    $('#map-column')?.scrollIntoView({ block: 'start' });
-    setTimeout(() => {
-      if (!campusMap) renderCampusMarkers();
-      else campusMap.invalidateSize();
-    }, 0);
-  }
-}));
-$('#map-expand').addEventListener('click', () => {
-  if (window.matchMedia('(max-width: 720px)').matches) {
-    document.body.classList.add('mobile-map-active');
-    $$('[data-mobile-view]').forEach((item) => item.classList.toggle('is-active', item.dataset.mobileView === 'map'));
-  } else {
-    $('#map-canvas').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
 });
 
 render();

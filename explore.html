@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#972c38" />
     <meta name="description" content="Explore study spots, campus dining, and student suggestions around Temple University." />
-    <title>Owl's Nest — Find your campus space</title>
+    <title>HootRoute — Find your campus space</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="styles.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
@@ -13,68 +13,57 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="index.html" aria-label="Owl's Nest home">
+      <a class="brand" href="index.html" aria-label="HootRoute home">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 40 40" fill="none"><path d="M8 8.5 17.2 12 20 8l2.8 4 9.2-3.5-1 13.3c-.5 6.7-5.5 11.3-11 11.3S9.5 28.5 9 21.8L8 8.5Z" fill="currentColor"/><path d="M14.5 20.5a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6ZM25.5 20.5a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6Z" fill="#fff"/><path d="m17 25 3-2 3 2-3 3-3-3Z" fill="#f3c77b"/></svg>
+          <img src="assets/hoot-route-logo-1.svg" alt="" />
         </span>
-        <span class="brand-copy"><strong>Owl’s Nest</strong><small>Temple campus spaces</small></span>
+        <span class="brand-copy"><strong>HootRoute</strong><small>Temple campus spaces</small></span>
       </a>
-      <nav class="header-actions" aria-label="Main actions">
+      <nav class="header-actions" aria-label="Tool actions">
         <button class="text-button" id="location-button" type="button" aria-label="Use my location"><span aria-hidden="true">⌖</span> Use my location</button>
         <button class="button button-primary header-submit" id="header-suggest" type="button"><span aria-hidden="true">＋</span> Share a spot</button>
       </nav>
     </header>
 
     <main id="top" class="page-shell">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <p class="eyebrow"><span class="eyebrow-dot"></span> YOUR TEMPLE CAMPUS, MADE EASIER</p>
-          <h1 id="hero-title">Don’t waste your break.<br /><span>Find your space.</span></h1>
-          <p class="hero-description">A quiet corner, a place to meet, or a bite between classes. Find a spot that fits the moment.</p>
-        </div>
-        <div class="hero-note"><span class="hero-note-icon" aria-hidden="true">✳</span><span><strong>A little more room to breathe.</strong><small>Discover familiar places and the ones students keep to themselves.</small></span></div>
-      </section>
+      <nav class="tool-view-tabs" role="tablist" aria-label="Choose a tool view">
+        <button class="tool-view-tab is-active" id="database-tab" type="button" role="tab" aria-selected="true" aria-controls="database-view" data-tool-view="database"><span aria-hidden="true">☷</span> Location database</button>
+        <button class="tool-view-tab" id="map-tab" type="button" role="tab" aria-selected="false" aria-controls="map-view" data-tool-view="map"><span aria-hidden="true">⌖</span> Campus map</button>
+      </nav>
 
-      <section class="demo-banner" aria-label="Prototype data notice">
-        <span class="demo-pulse" aria-hidden="true"></span>
-        <span><strong>Prototype preview</strong> · Crowd updates are sample reports, not live occupancy.</span>
-        <span class="banner-time">Updated just now <span aria-hidden="true">↗</span></span>
-      </section>
-
-      <div class="workspace">
-        <section class="discover-column" aria-label="Find campus spots">
+      <div class="workspace" data-view="database">
+        <section class="discover-column" id="database-view" role="tabpanel" aria-labelledby="database-tab" tabindex="0" aria-label="Location database">
           <div class="section-heading">
-            <div><p class="eyebrow">YOUR NEXT GOOD SPOT</p><h2>Find a place to land</h2></div>
+            <div><p class="eyebrow">TEMPLE UNIVERSITY · MAIN CAMPUS</p><h1>Campus locations</h1></div>
             <span class="result-count" id="result-count">— spots</span>
           </div>
 
           <div class="primary-tabs" role="tablist" aria-label="Spot collection">
-            <button class="primary-tab is-active" type="button" role="tab" aria-selected="true" data-tab="study"><span aria-hidden="true">⌕</span> Find a spot</button>
-            <button class="primary-tab" type="button" role="tab" aria-selected="false" data-tab="community"><span aria-hidden="true">✳</span> Community suggestions <span class="tab-count" id="community-count">0</span></button>
+            <button class="primary-tab is-active" type="button" role="tab" aria-selected="true" data-tab="study">All locations</button>
+            <button class="primary-tab" type="button" role="tab" aria-selected="false" data-tab="community">Student suggestions <span class="tab-count" id="community-count">0</span></button>
           </div>
 
           <div class="search-row">
-            <label class="search-box"><span aria-hidden="true">⌕</span><span class="sr-only">Search spots and buildings</span><input id="search-input" type="search" placeholder="Search spots, buildings, or amenities" autocomplete="off" /></label>
+            <label class="search-box"><span aria-hidden="true">⌕</span><span class="sr-only">Search locations</span><input id="search-input" type="search" placeholder="Search locations, buildings, or amenities" autocomplete="off" /></label>
             <button class="button button-outline share-inline" id="share-button" type="button"><span aria-hidden="true">＋</span> Share a spot</button>
           </div>
 
-          <div class="category-tabs" id="category-tabs" aria-label="Spot category">
-            <button type="button" class="category-chip is-active" data-category="study"><span aria-hidden="true">⌂</span> Study <span class="chip-small">4</span></button>
-            <button type="button" class="category-chip" data-category="food"><span aria-hidden="true">♨</span> Food <span class="chip-small">16</span></button>
+          <div class="category-tabs" id="category-tabs" aria-label="Filter locations by category">
+            <button type="button" class="category-chip is-active" data-category="all">All locations <span class="chip-small">—</span></button>
+            <button type="button" class="category-chip" data-category="study"><span aria-hidden="true">⌂</span> Study <span class="chip-small">4</span></button>
+            <button type="button" class="category-chip" data-category="food"><span aria-hidden="true">♨</span> Food &amp; dining <span class="chip-small">16</span></button>
             <button type="button" class="category-chip" data-category="recreation"><span aria-hidden="true">◉</span> Recreation <span class="chip-small">1</span></button>
           </div>
 
           <details class="filter-panel">
-            <summary><span class="filter-summary-icon" aria-hidden="true">☷</span><span><strong>Make it your kind of spot</strong><small>Choose what matters for this break</small></span><span class="filter-chevron" aria-hidden="true">⌄</span></summary>
+            <summary><span class="filter-summary-icon" aria-hidden="true">☷</span><span><strong>Filters</strong><small>Choose group size and amenities</small></span><span class="filter-chevron" aria-hidden="true">⌄</span></summary>
             <div class="filter-content">
               <div class="filter-grid">
-                <label class="filter-control">Busyness <span class="range-caption" id="busyness-caption">Any level</span><input id="busyness-filter" type="range" min="1" max="5" value="5" /><span class="range-ends"><span>1 · Empty</span><span>5 · Packed</span></span></label>
-                <label class="filter-control">Noise <span class="range-caption" id="noise-caption">Any level</span><input id="noise-filter" type="range" min="1" max="5" value="5" /><span class="range-ends"><span>1 · Quiet</span><span>5 · Loud</span></span></label>
-                <label class="filter-control">Group size<select id="group-filter"><option value="any">Any group size</option><option value="solo">Just me</option><option value="small">Small group</option><option value="large">Larger group</option></select></label>
+                <label class="filter-control">Group size<select id="group-filter"><option value="any">Any group size</option><option value="1">1 person</option><option value="2-4">2–4 people</option><option value="5+">5+ people</option></select></label>
                 <div class="filter-control amenity-filter-control"><span>Nearby amenities</span><details class="amenity-filter" id="amenity-filter">
                   <summary id="amenity-filter-summary">Any amenities <span aria-hidden="true">⌄</span></summary>
                   <div class="amenity-filter-options">
-                    <small class="amenity-filter-hint">Spots must have every selected amenity</small>
+                    <small class="amenity-filter-hint">Show spots with all selected amenities</small>
                     <label><input type="checkbox" value="outlets" /><span>Outlets</span></label>
                     <label><input type="checkbox" value="computers" /><span>Computers</span></label>
                     <label><input type="checkbox" value="whiteboards" /><span>Whiteboards</span></label>
@@ -84,50 +73,50 @@
                   </div>
                 </details></div>
               </div>
-              <label class="check-filter"><input id="outlets-filter" type="checkbox" /><span class="custom-check" aria-hidden="true"></span><span>Must have outlets</span></label>
               <button id="clear-filters" class="clear-filters" type="button">Clear filters</button>
             </div>
           </details>
 
-          <div class="list-toolbar"><p id="result-summary">Good places, close by</p><button class="sort-button" id="sort-button" type="button" aria-label="Sort spots by relevance">✦ <span>Best match</span><span aria-hidden="true">⌄</span></button></div>
+          <div class="list-toolbar"><p id="result-summary">Temple campus locations</p><button class="sort-button" id="sort-button" type="button" aria-label="Sort spots by relevance">✦ <span>Best match</span><span aria-hidden="true">⌄</span></button></div>
 
           <div class="spot-list" id="spot-list" aria-live="polite"></div>
-          <div class="empty-state" id="empty-state" hidden><span aria-hidden="true">⌕</span><h3>No spots match those filters</h3><p>Try opening up the busyness or noise filters.</p><button id="empty-clear" class="button button-outline" type="button">Clear filters</button></div>
-          <p class="data-footnote"><span aria-hidden="true">ⓘ</span> Crowd reports are examples for this prototype. Food listings follow <a href="https://www.temple.edu/life-temple/housing-dining/dining-options" target="_blank" rel="noreferrer">Temple’s dining options</a>.</p>
+          <div class="empty-state" id="empty-state" hidden><span aria-hidden="true">⌕</span><h3>No locations match</h3><p>Try changing or clearing a filter.</p><button id="empty-clear" class="button button-outline" type="button">Clear filters</button></div>
+          <p class="data-footnote"><span aria-hidden="true">ⓘ</span> Typical crowd levels use sample reports for this prototype, not live occupancy. Food listings follow <a href="https://www.temple.edu/life-temple/housing-dining/dining-options" target="_blank" rel="noreferrer">Temple’s dining options</a>.</p>
         </section>
 
-        <aside class="map-column" id="map-column" aria-label="Campus map and selected spot">
+        <section class="map-column" id="map-view" role="tabpanel" aria-labelledby="map-tab" tabindex="0" aria-label="Campus map" hidden>
           <div class="map-card">
-            <div class="map-topline"><div><p class="eyebrow">TEMPLE UNIVERSITY · MAIN CAMPUS</p><h2>Campus spots</h2></div><button class="map-expand" type="button" id="map-expand" aria-label="Show map view">↗</button></div>
-            <div class="map-view-tabs" role="tablist" aria-label="Map layer">
-              <button class="map-view-tab is-active" type="button" role="tab" aria-selected="true" data-map-view="spots">Campus spots</button>
-              <button class="map-view-tab" type="button" role="tab" aria-selected="false" data-map-view="trucks">Food trucks</button>
+            <div class="map-topline"><div><p class="eyebrow">TEMPLE UNIVERSITY · MAIN CAMPUS</p><h2>Explore the campus map</h2></div></div>
+            <div class="map-filter-panel" aria-label="Choose what to show on the map">
+              <span class="map-filter-title">Show on map</span>
+              <div class="map-filter-options">
+                <label><input type="checkbox" data-map-category="study" checked /><span class="map-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16M8 7h8M8 11h8"/></svg></span><span>Study spots</span></label>
+                <label><input type="checkbox" data-map-category="academic" checked /><span class="map-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14 4 6 6M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11zM13 5l6 6"/></svg></span><span>Academic buildings</span></label>
+                <label><input type="checkbox" data-map-category="dining" checked /><span class="map-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13h16a8 8 0 0 1-16 0zM3 13h18M8 8c-1-1 1-2 0-3M12 8c-1-1 1-2 0-3M16 8c-1-1 1-2 0-3"/></svg></span><span>Dining</span></label>
+                <label><input type="checkbox" data-map-category="food-trucks" checked /><span class="map-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span><span>Food trucks</span></label>
+                <label><input type="checkbox" data-map-category="recreation" checked /><span class="map-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg></span><span>Recreation</span></label>
+                <label><input type="checkbox" data-map-category="community" checked /><span class="map-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg></span><span>Student suggestions</span></label>
+              </div>
             </div>
             <div class="map-canvas" id="map-canvas">
-              <div id="campus-map" class="campus-map" role="application" aria-label="Interactive map of Temple study, dining, and recreation locations"></div>
-              <iframe id="truck-map" title="Temple University food truck map" src="https://www.google.com/maps/d/embed?mid=1kFf5IaeeXiFpn_UHIyd4UqwHj90&amp;ehbc=2E312F" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen hidden></iframe>
+              <div id="campus-map" class="campus-map" role="application" aria-label="Interactive map of Temple campus locations"></div>
             </div>
-            <div class="map-legend"><span><i class="map-key study"></i> Study</span><span><i class="map-key food"></i> Food</span><span><i class="map-key recreation"></i> Recreation</span></div>
-            <p class="map-attribution">Food truck locations from <a href="https://www.temple.edu/life-temple/housing-dining/temple-food-trucks" target="_blank" rel="noreferrer">Temple University</a>.</p>
-            <div class="selected-panel" id="selected-panel"></div>
+            <p class="map-number-hint">Numbered food-truck markers show how many trucks are grouped nearby; other numbered markers count locations.</p>
+            <p class="map-attribution">Truck locations and menu summaries from <a href="https://www.temple.edu/life-temple/housing-dining/temple-food-trucks" target="_blank" rel="noreferrer">Temple University</a>. Vendor hours are not listed. Crowd reports are sample data, not live occupancy.</p>
           </div>
-          <div class="share-callout"><span class="callout-illustration" aria-hidden="true">✳</span><div><strong>Know a hidden gem?</strong><p>Help another Owl find a spot they’ll love.</p></div><button id="callout-share" class="circle-arrow" type="button" aria-label="Share a campus spot">→</button></div>
-        </aside>
+        </section>
       </div>
-      <footer class="site-footer"><span>Owl’s Nest · made for the Temple community</span><span>Find your space, one break at a time <span aria-hidden="true">♥</span></span></footer>
+      <footer class="site-footer"><span>HootRoute · made for the Temple community</span><span>Prototype location data · check official sources for current details</span></footer>
     </main>
-
-    <div class="mobile-view-toggle" role="group" aria-label="Switch between list and map"><button type="button" class="is-active" data-mobile-view="list">☷ List</button><button type="button" data-mobile-view="map">⌖ Map</button></div>
 
     <div class="modal-backdrop" id="report-modal" hidden>
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="report-title" aria-describedby="report-description">
         <button class="modal-close" type="button" data-close-modal aria-label="Close report">×</button>
         <p class="eyebrow"><span class="eyebrow-dot"></span> QUICK CAMPUS CHECK-IN</p>
-        <h2 id="report-title">How’s this spot right now?</h2><p id="report-description" class="modal-description">Your quick check-in helps another Owl pick a place that works.</p>
+        <h2 id="report-title">How full is this spot?</h2><p id="report-description" class="modal-description">Your quick check-in helps show how busy this place tends to be.</p>
         <form id="report-form">
           <p class="modal-spot" id="report-spot-name"></p>
-          <fieldset class="rating-field"><legend>How busy is it?</legend><div class="rating-options" id="busyness-options"></div><div class="rating-help"><span>Room to spread out</span><span>Nearly full</span></div></fieldset>
-          <fieldset class="rating-field"><legend>How loud is it?</legend><div class="rating-options" id="noise-options"></div><div class="rating-help"><span>Quiet</span><span>Very loud</span></div></fieldset>
+          <fieldset class="rating-field"><legend>How much seating is open?</legend><div class="rating-options" id="busyness-options"></div><div class="rating-help"><span>Lots of open seats</span><span>Almost full</span></div></fieldset>
           <label class="optional-note">Anything else? <span>Optional</span><input id="report-note" type="text" maxlength="100" placeholder="e.g. plenty of open tables" /></label>
           <p class="cooldown-note" id="cooldown-note">Guest report · This prototype uses sample data.</p>
           <button class="button button-primary modal-submit" type="submit">Share my update <span aria-hidden="true">→</span></button>
