@@ -99,6 +99,11 @@ function updateCategoryUi() {
     button.setAttribute('aria-selected', String(active));
   });
   $$('.category-chip').forEach((button) => button.classList.toggle('is-active', button.dataset.category === state.category));
+  $$('.category-chip').forEach((button) => {
+    const count = state.spots.filter((spot) => !spot.community && spot.category === button.dataset.category).length;
+    const countLabel = $('.chip-small', button);
+    if (countLabel) countLabel.textContent = String(count);
+  });
   $('#result-summary').textContent = community ? 'Hidden gems shared by students' : state.sortByDistance ? 'Sorted from your location' : 'Good places, close by';
   const sortLabel = state.sortByDistance ? 'Nearest first' : 'Best match';
   $('#sort-button').innerHTML = `${state.sortByDistance ? '⌖' : '✦'} <span>${sortLabel}</span><span aria-hidden="true">⌄</span>`;
@@ -134,16 +139,78 @@ function selectedEntry(entries) {
   return entries.find((entry) => entry.spot.id === state.selectedSpotId) ?? entries[0] ?? null;
 }
 
+let campusMap;
+let campusMarkerLayer;
+let mapMode = 'spots';
+let campusMapFitted = false;
+
+function selectMapSpot(spotId) {
+  const spot = state.spots.find((item) => item.id === spotId);
+  if (!spot) return;
+  state.selectedSpotId = spot.id;
+  state.tab = spot.community ? 'community' : 'study';
+  state.category = spot.community ? 'all' : spot.category;
+  render();
+}
+
+function initializeCampusMap() {
+  const target = $('#campus-map');
+  if (!target || !target.offsetWidth || !window.L || campusMap) return;
+  campusMap = window.L.map(target, { scrollWheelZoom: false }).setView([39.98125, -75.15575], 16);
+  window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+  }).addTo(campusMap);
+  campusMarkerLayer = window.L.layerGroup().addTo(campusMap);
+}
+
+function renderCampusMarkers() {
+  initializeCampusMap();
+  if (!campusMap || !campusMarkerLayer) return;
+  campusMarkerLayer.clearLayers();
+  const foodGroups = new Map();
+  const categoryIcons = { study: '⌂', food: '♨', recreation: '◉' };
+  const addMarker = (spot, count = 1, selected = spot.id === state.selectedSpotId) => {
+    if (!spot.coordinates) return;
+    const icon = window.L.divIcon({
+      className: 'campus-map-icon',
+      html: `<span class="campus-map-pin pin-${escapeHtml(spot.category)}${count > 1 ? ' has-count' : ''}${selected ? ' is-selected' : ''}">${count > 1 ? count : categoryIcons[spot.category] ?? '⌖'}</span>`,
+      iconSize: [38, 42],
+      iconAnchor: [19, 39],
+    });
+    const marker = window.L.marker(spot.coordinates, { icon }).addTo(campusMarkerLayer);
+    if (count === 1) {
+      marker.bindTooltip(escapeHtml(spot.name));
+      marker.on('click', () => selectMapSpot(spot.id));
+    }
+    return marker;
+  };
+
+  state.spots.filter((spot) => spot.coordinates).forEach((spot) => {
+    if (spot.mapGroup) {
+      if (!foodGroups.has(spot.mapGroup)) foodGroups.set(spot.mapGroup, []);
+      foodGroups.get(spot.mapGroup).push(spot);
+      return;
+    }
+    addMarker(spot);
+  });
+
+  foodGroups.forEach((spots) => {
+    const marker = addMarker(spots[0], spots.length, spots.some((spot) => spot.id === state.selectedSpotId));
+    const links = spots.map((spot) => `<li><button class="map-popup-spot" type="button" data-map-spot="${escapeHtml(spot.id)}">${escapeHtml(spot.name)}</button></li>`).join('');
+    marker?.bindPopup(`<strong>${escapeHtml(spots[0].area)} · ${spots.length} vendors</strong><ul class="map-popup-list">${links}</ul>`);
+    marker?.on('popupopen', ({ popup }) => popup.getElement()?.querySelectorAll('[data-map-spot]').forEach((button) => button.addEventListener('click', () => selectMapSpot(button.dataset.mapSpot))));
+  });
+  if (!campusMapFitted) {
+    const locations = state.spots.filter((spot) => spot.coordinates).map((spot) => spot.coordinates);
+    if (locations.length) campusMap.fitBounds(window.L.latLngBounds(locations), { padding: [30, 30], maxZoom: 16 });
+    campusMapFitted = true;
+  }
+}
+
 function renderMap(entries) {
+  renderCampusMarkers();
   const selected = selectedEntry(entries);
-  const markers = entries.filter((entry) => entry.spot.position).map((entry) => {
-    const floor = currentFloor(entry);
-    const selectedClass = selected && selected.spot.id === entry.spot.id ? ' is-selected' : '';
-    const tone = statusTone(floor.busyness);
-    const rating = floor.busyness ?? '·';
-    return `<button class="map-marker status-${tone}${selectedClass}" style="left:${entry.spot.position.x}%;top:${entry.spot.position.y}%" type="button" data-map-spot="${escapeHtml(entry.spot.id)}" aria-label="${escapeHtml(entry.spot.name)}, ${escapeHtml(busynessLabel(floor.busyness))}"><span>${rating}</span></button>`;
-  }).join('');
-  $('#map-markers').innerHTML = markers;
   const panel = $('#selected-panel');
   if (!selected) {
     panel.innerHTML = '<div class="selected-empty">Choose a spot to see its details.</div>';
@@ -362,12 +429,18 @@ $('#spot-list').addEventListener('change', (event) => {
   if (select) setSelectedFloor(select.dataset.floorSelect, select.value);
 });
 
-$('#map-markers').addEventListener('click', (event) => {
-  const marker = event.target.closest('[data-map-spot]');
-  if (!marker) return;
-  state.selectedSpotId = marker.dataset.mapSpot;
-  render();
-});
+$$('[data-map-view]').forEach((button) => button.addEventListener('click', () => {
+  mapMode = button.dataset.mapView;
+  const trucksActive = mapMode === 'trucks';
+  $('#campus-map').hidden = trucksActive;
+  $('#truck-map').hidden = !trucksActive;
+  $$('[data-map-view]').forEach((item) => {
+    const active = item === button;
+    item.classList.toggle('is-active', active);
+    item.setAttribute('aria-selected', String(active));
+  });
+  if (!trucksActive) setTimeout(() => campusMap?.invalidateSize(), 0);
+}));
 
 $('#selected-panel').addEventListener('click', (event) => {
   const report = event.target.closest('[data-report]');
@@ -439,7 +512,13 @@ $$('[data-mobile-view]').forEach((button) => button.addEventListener('click', ()
   const showMap = button.dataset.mobileView === 'map';
   document.body.classList.toggle('mobile-map-active', showMap);
   $$('[data-mobile-view]').forEach((item) => item.classList.toggle('is-active', item === button));
-  if (showMap) $('#map-column')?.scrollIntoView({ block: 'start' });
+  if (showMap) {
+    $('#map-column')?.scrollIntoView({ block: 'start' });
+    setTimeout(() => {
+      if (!campusMap) renderCampusMarkers();
+      else campusMap.invalidateSize();
+    }, 0);
+  }
 }));
 $('#map-expand').addEventListener('click', () => {
   if (window.matchMedia('(max-width: 720px)').matches) {

@@ -6,7 +6,9 @@
     <meta name="theme-color" content="#972c38" />
     <meta name="description" content="Explore study spots, campus dining, and student suggestions around Temple University." />
     <title>Owl's Nest — Find your campus space</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
     <script type="module" src="src/app.js"></script>
   </head>
   <body>
@@ -58,7 +60,7 @@
 
           <div class="category-tabs" id="category-tabs" aria-label="Spot category">
             <button type="button" class="category-chip is-active" data-category="study"><span aria-hidden="true">⌂</span> Study <span class="chip-small">4</span></button>
-            <button type="button" class="category-chip" data-category="food"><span aria-hidden="true">♨</span> Food <span class="chip-small">1</span></button>
+            <button type="button" class="category-chip" data-category="food"><span aria-hidden="true">♨</span> Food <span class="chip-small">16</span></button>
             <button type="button" class="category-chip" data-category="recreation"><span aria-hidden="true">◉</span> Recreation <span class="chip-small">1</span></button>
           </div>
 
@@ -91,30 +93,27 @@
 
           <div class="spot-list" id="spot-list" aria-live="polite"></div>
           <div class="empty-state" id="empty-state" hidden><span aria-hidden="true">⌕</span><h3>No spots match those filters</h3><p>Try opening up the busyness or noise filters.</p><button id="empty-clear" class="button button-outline" type="button">Clear filters</button></div>
-          <p class="data-footnote"><span aria-hidden="true">ⓘ</span> Crowd reports are examples for this prototype. Community suggestions are student-submitted.</p>
+          <p class="data-footnote"><span aria-hidden="true">ⓘ</span> Crowd reports are examples for this prototype. Food listings follow <a href="https://www.temple.edu/life-temple/housing-dining/dining-options" target="_blank" rel="noreferrer">Temple’s dining options</a>.</p>
         </section>
 
         <aside class="map-column" id="map-column" aria-label="Campus map and selected spot">
           <div class="map-card">
-            <div class="map-topline"><div><p class="eyebrow">CAMPUS MAP · GOOGLE MY MAPS</p><h2>Temple food truck map</h2></div><button class="map-expand" type="button" id="map-expand" aria-label="Show map view">↗</button></div>
-            <div class="map-canvas" id="map-canvas" aria-label="Google map of Temple University food truck locations">
-              <iframe title="Temple University food truck map" src="https://www.google.com/maps/d/embed?mid=1kFf5IaeeXiFpn_UHIyd4UqwHj90&amp;ehbc=2E312F" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
-              <div class="map-markers" id="map-markers" hidden></div>
+            <div class="map-topline"><div><p class="eyebrow">TEMPLE UNIVERSITY · MAIN CAMPUS</p><h2>Campus spots</h2></div><button class="map-expand" type="button" id="map-expand" aria-label="Show map view">↗</button></div>
+            <div class="map-view-tabs" role="tablist" aria-label="Map layer">
+              <button class="map-view-tab is-active" type="button" role="tab" aria-selected="true" data-map-view="spots">Campus spots</button>
+              <button class="map-view-tab" type="button" role="tab" aria-selected="false" data-map-view="trucks">Food trucks</button>
             </div>
+            <div class="map-canvas" id="map-canvas">
+              <div id="campus-map" class="campus-map" role="application" aria-label="Interactive map of Temple study, dining, and recreation locations"></div>
+              <iframe id="truck-map" title="Temple University food truck map" src="https://www.google.com/maps/d/embed?mid=1kFf5IaeeXiFpn_UHIyd4UqwHj90&amp;ehbc=2E312F" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen hidden></iframe>
+            </div>
+            <div class="map-legend"><span><i class="map-key study"></i> Study</span><span><i class="map-key food"></i> Food</span><span><i class="map-key recreation"></i> Recreation</span></div>
             <p class="map-attribution">Food truck locations from <a href="https://www.temple.edu/life-temple/housing-dining/temple-food-trucks" target="_blank" rel="noreferrer">Temple University</a>.</p>
             <div class="selected-panel" id="selected-panel"></div>
           </div>
           <div class="share-callout"><span class="callout-illustration" aria-hidden="true">✳</span><div><strong>Know a hidden gem?</strong><p>Help another Owl find a spot they’ll love.</p></div><button id="callout-share" class="circle-arrow" type="button" aria-label="Share a campus spot">→</button></div>
         </aside>
       </div>
-      <section class="dining-directory" aria-labelledby="dining-title">
-        <div class="section-heading"><div><p class="eyebrow">OFFICIAL TEMPLE LISTINGS</p><h2 id="dining-title">Eat around campus</h2></div><a class="directory-source" href="https://www.temple.edu/life-temple/housing-dining/dining-options" target="_blank" rel="noreferrer">Dining options ↗</a></div>
-        <div class="dining-groups">
-          <article class="dining-group"><h3>Dining halls</h3><ul><li>Louis J. Esposito Dining Center <span>Johnson &amp; Hardwick Halls</span></li><li>Morgan Hall Food Court <span>Morgan Hall</span></li><li>Walker Food Court <span>Howard Gittis Student Center</span></li></ul><a class="group-map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Temple+University+Dining+Halls+Philadelphia" target="_blank" rel="noreferrer">View on Google Maps ↗</a></article>
-          <article class="dining-group"><h3>12th Street Vendor Pad</h3><ul><li>Aztecas Mexican Grill</li><li>Eddie’s Pizza</li><li>Fame’s Pizza</li><li>Hank’s</li><li>Richie’s Deli</li><li>Orient Express</li><li>Tai’s Vietnamese</li></ul><a class="group-map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Temple+University+12th+Street+Vendor+Pad+Philadelphia" target="_blank" rel="noreferrer">View on Google Maps ↗</a></article>
-          <article class="dining-group"><h3>Liacouras Walk</h3><ul><li>7-Eleven</li><li>Master Wok</li><li>Maxi’s</li><li>Playa Bowls</li><li>Saxbys</li><li>Subway</li></ul><a class="group-map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Temple+University+Liacouras+Walk+Philadelphia" target="_blank" rel="noreferrer">View on Google Maps ↗</a></article>
-        </div>
-      </section>
       <footer class="site-footer"><span>Owl’s Nest · made for the Temple community</span><span>Find your space, one break at a time <span aria-hidden="true">♥</span></span></footer>
     </main>
 

@@ -371,7 +371,7 @@ h1 span { color: var(--temple); }
 .landing-art::before, .landing-art::after { position: absolute; content: ''; border-radius: 50%; background: #e4eadc; }
 .landing-art::before { width: 170px; height: 170px; right: -43px; top: 35px; }
 .landing-art::after { width: 130px; height: 130px; left: -38px; bottom: -32px; background: #efe4d3; }
-.art-campus-label { position: absolute; z-index: 1; top: 23px; left: 25px; color: #777c6d; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.art-campus-label { position: absolute; z-index: 4; top: 23px; left: 25px; color: #777c6d; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
 .art-walk { position: absolute; z-index: 1; height: 23px; border-radius: 20px; background: #fffefa; border: 1px solid #e8e4db; }
 .walk-one { width: 120%; left: -10%; top: 51%; transform: rotate(-18deg); }
 .walk-two { width: 115%; left: -4%; top: 52%; transform: rotate(54deg); }
@@ -447,27 +447,31 @@ h1 span { color: var(--temple); }
 .spot-content { padding: 16px; }
 .spot-accent { width: 4px; }
 .data-footnote { font-size: 11px; }
-.dining-directory { margin-top: 38px; padding: 25px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
-.dining-directory .section-heading { margin-bottom: 18px; }
-.dining-directory .section-heading h2 { margin: 0; font-size: 24px; letter-spacing: -.04em; }
-.directory-source { font-size: 14px; text-decoration: none; white-space: nowrap; }
-.dining-groups { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
-.dining-group { padding: 17px; border-radius: 11px; background: var(--soft); }
-.dining-group h3 { margin: 0 0 12px; font-size: 16px; }
-.dining-group ul { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
-.dining-group li { color: #403a35; font-size: 14px; line-height: 1.4; }
-.dining-group li span { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
-.group-map-link { display: inline-block; margin-top: 14px; color: var(--temple); font-size: 12px; font-weight: 650; text-decoration: none; }
-.group-map-link:hover, .directory-source:hover, .map-attribution a:hover { text-decoration: underline; }
+.map-attribution a:hover { text-decoration: underline; }
+#campus-map { width: 100%; height: 390px; background: #f2f2f0; }
+#campus-map[hidden], #truck-map[hidden] { display: none; }
+.map-view-tabs { display: flex; gap: 7px; padding: 0 15px 12px; }
+.map-view-tab { min-height: 32px; padding: 0 12px; border: 1px solid #ece6e0; border-radius: 8px; background: #fff; color: #6f675f; font-size: 12px; font-weight: 600; cursor: pointer; }
+.map-view-tab.is-active { border-color: #e3c1c4; background: #fbf2f3; color: var(--temple); }
+.map-canvas iframe { height: 390px; }
+.campus-map-icon { border: 0; background: transparent; }
+.campus-map-pin { display: grid; place-items: center; width: 34px; height: 34px; border: 3px solid #fff; border-radius: 50% 50% 50% 8px; transform: rotate(-45deg); background: var(--temple); box-shadow: 0 3px 9px rgba(47,40,35,.3); color: #fff; font-size: 15px; font-weight: 800; }
+.campus-map-pin.pin-food { background: #bc8638; }
+.campus-map-pin.pin-recreation { background: #62816a; }
+.campus-map-pin.has-count { width: 38px; height: 38px; border-radius: 50%; transform: none; font-size: 13px; }
+.campus-map-pin.is-selected { outline: 3px solid rgba(151,44,56,.25); outline-offset: 2px; }
+.map-popup-list { display: grid; gap: 3px; max-height: 170px; overflow: auto; padding: 7px 0 0 18px; margin: 0; }
+.map-popup-spot { padding: 2px 0; border: 0; background: none; color: var(--temple); font: inherit; text-align: left; cursor: pointer; }
+.map-popup-spot:hover { text-decoration: underline; }
+.map-key { width: 9px; height: 9px; display: inline-block; border-radius: 50%; background: var(--temple); }
+.map-key.food { background: #bc8638; }.map-key.recreation { background: #62816a; }
 @media (max-width: 980px) {
   .map-canvas { min-height: 305px; }
   .map-canvas iframe { height: 305px; }
+  #campus-map { height: 305px; }
 }
 @media (max-width: 720px) {
   .map-canvas { min-height: min(55vh, 410px); }
   .map-canvas iframe { height: min(55vh, 410px); }
-  .dining-directory { margin-top: 25px; padding: 17px; }
-  .dining-groups { grid-template-columns: 1fr; gap: 10px; }
-  .dining-directory .section-heading h2 { font-size: 20px; }
-  .dining-group { padding: 14px; }
+  #campus-map { height: min(55vh, 410px); }
 }

@@ -2,7 +2,7 @@
 
 Prototype for Temple-AI-Build-Challenge.
 
-A responsive Temple campus guide prototype. The home page at `index.html` introduces Owl’s Nest; the interactive finder is at `explore.html`. The finder uses sample data and in-memory interactions; crowd reports and student suggestions are not shared and reset when the page reloads. The campus food truck map is embedded from Temple University’s public Google My Maps, and the dining directory follows Temple’s published dining options.
+A responsive Temple campus guide prototype. The home page at `index.html` introduces Owl’s Nest; the interactive finder is at `explore.html`. The finder uses sample data and in-memory interactions; crowd reports and student suggestions are not shared and reset when the page reloads. Its campus map plots study, dining, and recreation spots on OpenStreetMap; Temple’s food truck map remains available as a separate layer.
 
 ## Run locally
 
@@ -21,8 +21,8 @@ This is a static site with no build step. In the repository's **Settings → Pag
 ## Demo behavior
 
 - Open the landing page at the site root, then choose **Explore the tool** to open the finder.
-- Use the filters and floor selectors to explore sample study locations. The map shows Temple’s published food truck locations.
-- The dining directory lists Temple’s dining halls, 12th Street vendors, and Liacouras Walk vendors.
+- Use the filters and floor selectors to explore study, dining, and recreation locations. The **Campus spots** map layer shows those locations; **Food trucks** opens Temple’s maintained map.
+- Temple’s dining halls, 12th Street vendors, and Liacouras Walk vendors appear under **Food**.
 - Submit a crowd report or a community suggestion to see the interaction. The report cooldown and submitted content last only until refresh.
 - Location access is requested only after selecting **Use my location**. The prototype uses it in the browser to sort spots and offer a nearby report prompt.
 - All crowd ratings are sample reports. They are not live campus occupancy data.
@@ -34,4 +34,4 @@ This is a static site with no build step. In the repository's **Settings → Pag
 - [Temple dining options](https://www.temple.edu/life-temple/housing-dining/dining-options)
 - [Temple Campus Recreation facilities](https://www.temple.edu/campus-recreation/facilities/hours-operation)
 
-Study spot coordinates remain illustrative; the embedded truck map is maintained by Temple University.
+Study and recreation coordinates are prototype entries; food vendors sharing a Temple-listed area are grouped at that area on the map. Temple maintains the separate food truck map.

@@ -14,6 +14,30 @@ const floor = (id, label, area, busyness, noise, groups, amenities, updatedMinut
   detail,
 });
 
+const diningSpot = (id, name, area, coordinates, mapGroup = null) => ({
+  id, name, building: area, category: 'food', type: 'Dining', description: `${name} is listed by Temple University as a campus dining option.`,
+  area, coordinates, mapGroup,
+  floors: [floor(`${id}-main`, 'Dining location', area, null, null, ['solo', 'small', 'large'], ['food'], null, 0, 'Temple dining listing · check Temple Dining for current hours.')],
+});
+
+const diningSpots = [
+  diningSpot('esposito-dining', 'Louis J. Esposito Dining Center', 'Johnson & Hardwick Halls', [39.98347, -75.15554]),
+  diningSpot('morgan-food-court', 'Morgan Hall Food Court', 'Morgan Hall', [39.97872, -75.15565]),
+  diningSpot('aztecas', 'Aztecas Mexican Grill', '12th Street Vendor Pad', [39.98102, -75.15718], '12th-street-vendors'),
+  diningSpot('eddies-pizza', 'Eddie’s Pizza', '12th Street Vendor Pad', [39.98102, -75.15718], '12th-street-vendors'),
+  diningSpot('fames-pizza', 'Fame’s Pizza', '12th Street Vendor Pad', [39.98102, -75.15718], '12th-street-vendors'),
+  diningSpot('hanks', 'Hank’s', '12th Street Vendor Pad', [39.98102, -75.15718], '12th-street-vendors'),
+  diningSpot('richies-deli', 'Richie’s Deli', '12th Street Vendor Pad', [39.98102, -75.15718], '12th-street-vendors'),
+  diningSpot('orient-express', 'Orient Express', '12th Street Vendor Pad', [39.98102, -75.15718], '12th-street-vendors'),
+  diningSpot('tais-vietnamese', 'Tai’s Vietnamese', '12th Street Vendor Pad', [39.98102, -75.15718], '12th-street-vendors'),
+  diningSpot('seven-eleven', '7-Eleven', 'Liacouras Walk', [39.98072, -75.15567], 'liacouras-walk-vendors'),
+  diningSpot('master-wok', 'Master Wok', 'Liacouras Walk', [39.98072, -75.15567], 'liacouras-walk-vendors'),
+  diningSpot('maxis', 'Maxi’s', 'Liacouras Walk', [39.98072, -75.15567], 'liacouras-walk-vendors'),
+  diningSpot('playa-bowls', 'Playa Bowls', 'Liacouras Walk', [39.98072, -75.15567], 'liacouras-walk-vendors'),
+  diningSpot('saxbys', 'Saxbys', 'Liacouras Walk', [39.98072, -75.15567], 'liacouras-walk-vendors'),
+  diningSpot('subway', 'Subway', 'Liacouras Walk', [39.98072, -75.15567], 'liacouras-walk-vendors'),
+];
+
 // Counts, noise and timestamps are sample data for the prototype.
 export const spots = [
   {
@@ -42,7 +66,7 @@ export const spots = [
     floors: [floor('wachman-3', '3rd floor', 'Window-side tables', 1, 1, ['solo', 'small'], ['outlets'], 43, 5, 'Sample entry to show how an off-the-main-path spot might appear.')],
   },
   {
-    id: 'student-center-food', name: 'Student Center Food Court', building: 'Howard Gittis Student Center', category: 'food', type: 'Food',
+    id: 'student-center-food', name: 'Walker Food Court', building: 'Howard Gittis Student Center', category: 'food', type: 'Dining',
     description: 'A convenient place to grab a bite and sit down.', area: 'Student Center', position: { x: 33, y: 68 }, coordinates: [39.97982, -75.15545],
     floors: [floor('food-court', 'Main level', 'Food Court', 4, 4, ['small', 'large'], ['outlets', 'food'], 31, 4, 'Food Court is listed by Temple among its dining options.')],
   },
@@ -51,6 +75,7 @@ export const spots = [
     description: 'Move, play, or take a break from studying.', area: 'Main Campus', position: { x: 72, y: 75 }, coordinates: [39.97906, -75.15361],
     floors: [floor('ibc-main', 'Main level', 'Recreation space', 3, 3, ['small', 'large'], ['outlets'], 54, 7, 'Listed as a Campus Recreation facility by Temple University.')],
   },
+  ...diningSpots,
 ];
 
 export const initialSuggestions = [
