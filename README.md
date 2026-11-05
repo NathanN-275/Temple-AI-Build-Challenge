@@ -35,5 +35,7 @@ This is a static site with no build step. In the repository's **Settings → Pag
 - [TECH Center labs and study spaces](https://its.temple.edu/tech-labs-campus)
 - [Temple dining options](https://www.temple.edu/life-temple/housing-dining/dining-options)
 - [Temple Campus Recreation facilities](https://www.temple.edu/campus-recreation/facilities/hours-operation)
+- [Aramark STAR Complex Weight Room](https://www.temple.edu/campus-recreation/facilities/aramark-star-complex%E2%80%94weight-room)
+- [Pearson/McGonigle 3rd Floor Rec Courts](https://www.temple.edu/campus-recreation/facilities/pearsonmcgonigle-hall-3rd-floor-rec-courts)
 
 Study and recreation coordinates are prototype entries; food vendors sharing a Temple-listed area are grouped at that area on the map. Temple maintains the separate food truck map.

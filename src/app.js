@@ -162,6 +162,7 @@ function selectedEntry(entries) {
 let campusMap;
 let campusMarkerLayer;
 let campusMapFitted = false;
+const mapCategories = new Set(['study', 'food', 'recreation']);
 
 function selectMapSpot(spotId) {
   const spot = state.spots.find((item) => item.id === spotId);
