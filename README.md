@@ -35,12 +35,15 @@ This is a static site with no build step. In the repository's **Settings → Pag
 - Zoom the map with the controls, mouse wheel or trackpad, or pinch gestures on touchscreens. Numbered food-truck markers show how many trucks are grouped nearby.
 - Temple’s food-truck names, coordinates, and paraphrased menu summaries are based on its maintained [food truck map](https://www.temple.edu/life-temple/housing-dining/temple-food-trucks). The map does not publish per-truck hours, so check with vendors for current schedules. Dining cards and map popups include brief food descriptions; menus at food courts vary by counter. Temple’s dining halls, 12th Street vendors, and Liacouras Walk vendors appear under **Food & dining**.
 - Submit a seating check-in or community suggestion. Submissions are shared with visitors and expire after 24 hours. The 15-minute report cooldown is stored in this browser.
+- Suggestions have a server-enforced limit of **3 successful submissions per public IP in a rolling 15-minute window**. Visitors sharing campus Wi-Fi may share the quota. The database trigger also guards direct REST inserts and serializes concurrent requests; the form preserves its contents and shows the remaining wait when the server returns HTTP 429.
+- The hosted limiter uses Cloudflare's protected `CF-Connecting-IP` header, fails closed when it is missing or invalid, and ignores client-supplied forwarding headers. It stores a salted IP hash in private tables, with hourly cleanup after 24 hours. Administrators writing directly through SQL are exempt. Local Supabase requests need equivalent trusted proxy headers; this hosted setup is not a generic proxy configuration. Changing public IPs can still bypass a per-IP quota.
 - Community crowd status uses the median of at least three browser votes from the last hour, counting each browser's latest vote per floor once. Below three votes, cards show **Not enough votes**. An even-count median is rounded to the nearest level, with halves toward busier. Older reports remain stored for the rest of their 24-hour lifetime but do not affect the vote.
 - Browser IDs and cooldowns offer basic duplicate handling; clearing storage or forging IDs can bypass them. This does not verify individual students or prevent deliberate ballot stuffing. New votes from other visitors appear on reload; open pages refresh the consensus when an included vote ages out.
 - Location access is requested only after selecting **Use my location**. The prototype uses it in the browser to sort spots and offer a nearby report prompt.
 - Typical crowd labels summarize sample seating reports, not live campus occupancy data.
 
 The regression checks in `supabase/tests/crowd_consensus.sql` exercise the voting rules as the public role inside a transaction and roll back all fixtures.
+`supabase/tests/suggestion_rate_limit.sql` checks quotas, network isolation, invalid submissions, missing IPs, spoofed forwarding headers, and window expiry in a rollback transaction. Live API checks also verified concurrent requests and rejected forged Cloudflare headers.
 
 ## Sample location references
 

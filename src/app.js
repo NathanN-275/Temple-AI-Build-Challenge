@@ -373,6 +373,7 @@ function openReport(spotId) {
 
 function openSuggest() {
   $('#suggest-form').reset();
+  $('#suggest-error').hidden = true;
   setModal('suggest-modal', true);
 }
 
@@ -640,6 +641,7 @@ $('#report-form').addEventListener('submit', async (event) => {
 
 $('#suggest-form').addEventListener('submit', async (event) => {
   event.preventDefault();
+  $('#suggest-error').hidden = true;
   const name = $('#suggest-name').value.trim();
   const building = $('#suggest-building').value.trim();
   if (!name || !building) return;
@@ -666,7 +668,13 @@ $('#suggest-form').addEventListener('submit', async (event) => {
     showToast('Thanks for sharing a spot. It’s visible to everyone for 24 hours.');
   } catch (error) {
     console.error('Could not save suggestion:', error);
-    showToast('Could not save this suggestion. Please try again.');
+    const retryMinutes = Math.max(1, Math.ceil((Number(error.details) || 900) / 60));
+    const message = error.code === 'PT429'
+      ? `You can share 3 spots every 15 minutes from your network. Try again in ${retryMinutes} ${retryMinutes === 1 ? 'minute' : 'minutes'}.`
+      : 'Could not save this suggestion. Please try again.';
+    $('#suggest-error').textContent = message;
+    $('#suggest-error').hidden = false;
+    showToast(message);
   } finally {
     button.disabled = false;
   }

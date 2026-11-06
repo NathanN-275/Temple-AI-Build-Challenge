@@ -135,7 +135,8 @@
           <label class="form-field">Floor <span class="optional-label">Optional</span><input id="suggest-floor" maxlength="30" placeholder="e.g. 3rd floor" /></label>
           <fieldset class="amenity-field"><legend>What’s around? <span class="optional-label">Optional</span></legend><div class="amenity-options"><label><input type="checkbox" value="outlets" /><span>Outlets</span></label><label><input type="checkbox" value="computers" /><span>Computers</span></label><label><input type="checkbox" value="whiteboards" /><span>Whiteboards</span></label><label><input type="checkbox" value="books" /><span>Books</span></label><label><input type="checkbox" value="games" /><span>Games</span></label><label><input type="checkbox" value="food" /><span>Food nearby</span></label></div></fieldset>
           <label class="form-field">A little more detail <span class="optional-label">Optional</span><textarea id="suggest-details" maxlength="180" rows="2" placeholder="What makes this spot useful?"></textarea></label>
-          <p class="cooldown-note">Community suggestion · Visible to everyone for 24 hours.</p>
+          <p class="cooldown-note">Community suggestion · Visible for 24 hours. Up to 3 submissions every 15 minutes from your network.</p>
+          <p class="form-error" id="suggest-error" role="alert" hidden></p>
           <button class="button button-primary modal-submit" type="submit">Share this spot <span aria-hidden="true">→</span></button>
         </form>
       </section>

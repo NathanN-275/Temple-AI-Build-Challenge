@@ -158,6 +158,7 @@ h1 span { color: var(--temple); }
 .live-crowd-quiet { color: #477252; }
 .live-crowd-some { color: #946828; }
 .live-crowd-busy { color: #a45149; }
+.form-error { color: #972c38; font-size: 12px; line-height: 1.5; }
 .food-truck-details { display: grid; gap: 5px; margin-top: 12px; color: #71685f; font-size: 11px; line-height: 1.45; }
 .food-truck-details p { margin: 0; }
 .food-truck-details strong { color: #493e35; }
