@@ -102,7 +102,7 @@
               <div id="campus-map" class="campus-map" role="application" aria-label="Interactive map of Temple campus locations"></div>
             </div>
             <p class="map-number-hint">Numbered food-truck markers show how many trucks are grouped nearby; other numbered markers count locations.</p>
-            <p class="map-attribution">Truck locations and menu summaries from <a href="https://www.temple.edu/life-temple/housing-dining/temple-food-trucks" target="_blank" rel="noreferrer">Temple University</a>. Vendor hours are not listed. Crowd reports are sample data, not live occupancy.</p>
+            <p class="map-attribution">Truck locations and menu summaries from <a href="https://www.temple.edu/life-temple/housing-dining/temple-food-trucks" target="_blank" rel="noreferrer">Temple University</a>. Vendor hours are not listed. Student crowd reports are unverified check-ins.</p>
           </div>
         </section>
       </div>
@@ -113,7 +113,7 @@
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="report-title" aria-describedby="report-description">
         <button class="modal-close" type="button" data-close-modal aria-label="Close report">×</button>
         <p class="eyebrow"><span class="eyebrow-dot"></span> QUICK CAMPUS CHECK-IN</p>
-        <h2 id="report-title">How full is this spot?</h2><p id="report-description" class="modal-description">Your quick check-in helps show how busy this place tends to be.</p>
+        <h2 id="report-title">How full is this spot?</h2><p id="report-description" class="modal-description">Vote on the crowd level. The community status uses at least 3 browser votes from the last hour.</p>
         <form id="report-form">
           <p class="modal-spot" id="report-spot-name"></p>
           <fieldset class="rating-field"><legend>How much seating is open?</legend><div class="rating-options" id="busyness-options"></div><div class="rating-help"><span>Lots of open seats</span><span>Almost full</span></div></fieldset>
@@ -135,7 +135,7 @@
           <label class="form-field">Floor <span class="optional-label">Optional</span><input id="suggest-floor" maxlength="30" placeholder="e.g. 3rd floor" /></label>
           <fieldset class="amenity-field"><legend>What’s around? <span class="optional-label">Optional</span></legend><div class="amenity-options"><label><input type="checkbox" value="outlets" /><span>Outlets</span></label><label><input type="checkbox" value="computers" /><span>Computers</span></label><label><input type="checkbox" value="whiteboards" /><span>Whiteboards</span></label><label><input type="checkbox" value="books" /><span>Books</span></label><label><input type="checkbox" value="games" /><span>Games</span></label><label><input type="checkbox" value="food" /><span>Food nearby</span></label></div></fieldset>
           <label class="form-field">A little more detail <span class="optional-label">Optional</span><textarea id="suggest-details" maxlength="180" rows="2" placeholder="What makes this spot useful?"></textarea></label>
-          <p class="cooldown-note">Community suggestion · Demo-only, visible in this session.</p>
+          <p class="cooldown-note">Community suggestion · Visible to everyone for 24 hours.</p>
           <button class="button button-primary modal-submit" type="submit">Share this spot <span aria-hidden="true">→</span></button>
         </form>
       </section>

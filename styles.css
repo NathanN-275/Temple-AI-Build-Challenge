@@ -152,6 +152,12 @@ h1 span { color: var(--temple); }
 .freshness.is-stale { color: #a36b33; }
 .freshness.is-unknown { color: #aaa29a; }
 .typical-crowd { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.live-crowd { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 6px; color: #82796f; font-size: 8px; }
+.live-crowd-title { color: #71685f; font-size: 9px; font-weight: 700; }
+.live-crowd strong { font-size: 9px; }
+.live-crowd-quiet { color: #477252; }
+.live-crowd-some { color: #946828; }
+.live-crowd-busy { color: #a45149; }
 .food-truck-details { display: grid; gap: 5px; margin-top: 12px; color: #71685f; font-size: 11px; line-height: 1.45; }
 .food-truck-details p { margin: 0; }
 .food-truck-details strong { color: #493e35; }
@@ -336,6 +342,7 @@ h1 span { color: var(--temple); }
   .share-inline { gap: 4px; padding: 0 8px; }
   .filter-grid { grid-template-columns: 1fr; }
   .typical-crowd { gap: 6px; }
+  .live-crowd { gap: 6px; }
   .report-count { margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
