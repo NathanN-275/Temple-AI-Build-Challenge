@@ -1,5 +1,6 @@
 import { amenityLabels, initialSuggestions, spots as seedSpots } from './data.js';
-import { crowdPattern, formatDistance, freshness, getVisibleSpots, REPORT_COOLDOWN_MS } from './domain.js';
+import { supabase } from './supabase.js';
+import { busynessLabel, crowdPattern, formatDistance, freshness, getVisibleSpots, REPORT_COOLDOWN_MS } from './domain.js';
 
 const copy = (value) => JSON.parse(JSON.stringify(value));
 const foodTruckSourceUrl = 'https://www.temple.edu/life-temple/housing-dining/temple-food-trucks';
@@ -26,7 +27,13 @@ const state = {
   selectedFloors: { 'charles-library': 'charles-4' },
   userCoordinates: null,
   sortByDistance: false,
-  reportCooldowns: {},
+  reportCooldowns: (() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('hootroute-report-cooldowns') ?? '{}');
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+    }
+    catch { return {}; }
+  })(),
 };
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -79,6 +86,18 @@ function spotMarkup(entry) {
     <strong>${escapeHtml(crowd.label)}</strong>
     ${crowd.reports ? `<span class="report-count">Based on ${crowd.reports} sample ${crowd.reports === 1 ? 'report' : 'reports'}</span>` : ''}
   </div>`;
+  const votesCurrent = Date.parse(floor.liveValidUntil) > Date.now();
+  const voteCount = votesCurrent ? floor.liveVoteCount : 0;
+  const liveBusyness = votesCurrent ? floor.liveBusyness : null;
+  const liveFreshness = freshness(votesCurrent ? floor.liveUpdatedAt : null);
+  const liveTone = (liveBusyness ?? 0) >= 4 ? 'busy' : (liveBusyness ?? 0) >= 3 ? 'some' : 'quiet';
+  const liveStatus = `<div class="live-crowd">
+    <span class="live-crowd-title">Community vote</span>
+    ${liveBusyness !== null && liveBusyness !== undefined
+      ? `<strong class="live-crowd-${liveTone}">${escapeHtml(busynessLabel(liveBusyness))}</strong><span>${escapeHtml(liveFreshness.label)}</span>`
+      : '<span>Not enough votes</span>'}
+    <span class="report-count">${voteCount} ${voteCount === 1 ? 'vote' : 'votes'} in the last hour${voteCount < 3 ? ' · minimum 3' : ''}</span>
+  </div>`;
   const subline = floor.lastNote || floor.detail || spot.description;
   const updateText = cooldownText(floor.id);
   const buildingLine = !isFoodListing || distance !== null
@@ -101,6 +120,7 @@ function spotMarkup(entry) {
         ${buildingLine}
       </div>${freshnessMarkup}</div>
       ${status}
+      ${isFoodListing ? '' : liveStatus}
       ${foodDetails}
       ${floorSelector}
       ${tags}
@@ -341,12 +361,12 @@ function openReport(spotId) {
   if (!state.selectedFloors[spot.id]) state.selectedFloors[spot.id] = spot.floors[0].id;
   const floor = spot.floors.find((item) => item.id === state.selectedFloors[spot.id]) ?? spot.floors[0];
   $('#report-spot-name').textContent = `${spot.name} · ${floor.label}`;
-  $('#busyness-options').innerHTML = ratingButtons('report-busyness', floor.busyness ?? 3, ['Empty', 'Lots of room', 'Some seats open', 'Almost full', 'Full']);
+  $('#busyness-options').innerHTML = ratingButtons('report-busyness', null, ['Empty', 'Lots of room', 'Some seats open', 'Almost full', 'Full']);
   $('#report-note').value = '';
   const remaining = remainingCooldown(floor.id);
   $('#cooldown-note').textContent = remaining
     ? `Guest report · You can update this floor again in ${Math.ceil(remaining / 60_000)} minutes.`
-    : 'Guest report · One update per floor every 15 minutes in this demo. Not shared with other visitors.';
+    : 'Guest report · One update per floor every 15 minutes in this browser.';
   $('.modal-submit', $('#report-modal')).disabled = remaining > 0;
   setModal('report-modal', true);
 }
@@ -354,6 +374,109 @@ function openReport(spotId) {
 function openSuggest() {
   $('#suggest-form').reset();
   setModal('suggest-modal', true);
+}
+
+function suggestionSpot(row) {
+  const id = `suggestion-${row.id}`;
+  const details = row.details || 'Student-submitted spot; details have not been verified.';
+  return {
+    id, name: row.name, building: row.building, category: 'study', type: 'Student suggestion', community: true,
+    description: row.details || 'A place shared by a member of the Temple community.', area: row.building,
+    coordinates: null, position: null,
+    floors: [{
+      id: `${id}-area`, label: row.floor_label || 'Building area', area: row.name,
+      busyness: null, noise: null, groups: [], amenities: row.amenities ?? [],
+      outlets: (row.amenities ?? []).includes('outlets'), updatedAt: null, reportCount: 0, detail: details,
+    }],
+  };
+}
+
+async function loadSharedData() {
+  let suggestionsResult;
+  let reportsResult;
+  try {
+    [suggestionsResult, reportsResult] = await Promise.all([
+      supabase.from('community_suggestions').select('*').order('created_at', { ascending: false }),
+      supabase.rpc('get_crowd_consensus'),
+    ]);
+  } catch (error) {
+    console.error('Could not load shared updates:', error);
+    showToast('Shared updates could not be loaded. Try refreshing the page.');
+    return;
+  }
+  if (suggestionsResult.error) console.error('Could not load suggestions:', suggestionsResult.error);
+  else state.spots.push(...suggestionsResult.data.map(suggestionSpot));
+  if (reportsResult.error) console.error('Could not load crowd reports:', reportsResult.error);
+  else applyCrowdConsensus(reportsResult.data);
+  if (suggestionsResult.error || reportsResult.error) showToast('Some shared updates could not be loaded. Try refreshing the page.');
+  render();
+}
+
+let crowdExpiryTimer;
+function applyCrowdConsensus(rows) {
+  clearTimeout(crowdExpiryTimer);
+  for (const spot of state.spots) {
+    for (const floor of spot.floors) {
+      floor.liveBusyness = null;
+      floor.liveVoteCount = 0;
+      floor.liveUpdatedAt = null;
+      floor.liveValidUntil = null;
+    }
+  }
+  let nextExpiry = Infinity;
+  for (const row of rows) {
+    const spot = state.spots.find((item) => item.id === row.spot_key);
+    const floor = spot?.floors.find((item) => item.id === row.floor_key);
+    if (!floor) continue;
+    floor.liveBusyness = row.busyness;
+    floor.liveVoteCount = Number(row.vote_count);
+    floor.liveUpdatedAt = row.updated_at;
+    floor.liveValidUntil = row.valid_until;
+    nextExpiry = Math.min(nextExpiry, Date.parse(row.valid_until));
+  }
+  if (Number.isFinite(nextExpiry)) {
+    crowdExpiryTimer = window.setTimeout(async () => {
+      render();
+      await refreshCrowdVotes();
+    }, Math.max(1000, nextExpiry - Date.now() + 100));
+  }
+}
+
+async function refreshCrowdVotes() {
+  try {
+    const { data, error } = await supabase.rpc('get_crowd_consensus');
+    if (error) throw error;
+    applyCrowdConsensus(data);
+    render();
+    return true;
+  } catch (error) {
+    console.error('Could not refresh crowd votes:', error);
+    showToast('Could not refresh crowd votes. Please reload the page.');
+    render();
+    clearTimeout(crowdExpiryTimer);
+    crowdExpiryTimer = window.setTimeout(refreshCrowdVotes, 60_000);
+    return false;
+  }
+}
+
+let browserVoterId;
+function getBrowserVoterId() {
+  if (browserVoterId) return browserVoterId;
+  try {
+    const saved = localStorage.getItem('hootroute-voter-id');
+    browserVoterId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saved ?? '') ? saved : crypto.randomUUID();
+    localStorage.setItem('hootroute-voter-id', browserVoterId);
+  } catch {
+    browserVoterId = crypto.randomUUID();
+  }
+  // shortcut: browser IDs can be reset or forged; use verified accounts for stronger duplicate protection.
+  return browserVoterId;
+}
+
+function saveReportCooldown(floorId) {
+  state.reportCooldowns[floorId] = Date.now() + REPORT_COOLDOWN_MS;
+  try { localStorage.setItem('hootroute-report-cooldowns', JSON.stringify(state.reportCooldowns)); }
+  catch { /* Browser storage may be unavailable; the in-memory cooldown still applies. */ }
 }
 
 function requestLocation() {
@@ -487,7 +610,7 @@ $$('[data-map-category]').forEach((input) => input.addEventListener('change', ()
   renderCampusMarkers();
 }));
 
-$('#report-form').addEventListener('submit', (event) => {
+$('#report-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const selection = selectedSpotAndFloor();
   if (!selection) return;
@@ -495,17 +618,27 @@ $('#report-form').addEventListener('submit', (event) => {
   if (remainingCooldown(floor.id)) return;
   const busyness = Number($('input[name="report-busyness"]:checked', event.currentTarget)?.value);
   if (!busyness) return;
-  floor.busyness = busyness;
-  floor.updatedAt = new Date().toISOString();
-  floor.reportCount += 1;
-  floor.lastNote = $('#report-note').value.trim();
-  state.reportCooldowns[floor.id] = Date.now() + REPORT_COOLDOWN_MS;
-  setModal('report-modal', false);
-  render();
-  showToast(`Thanks for the check-in at ${spot.name}. It’s saved in this demo only.`);
+  const button = $('.modal-submit', event.currentTarget);
+  button.disabled = true;
+  const note = $('#report-note').value.trim();
+  try {
+    const { error } = await supabase.from('crowd_reports').insert({
+      spot_key: spot.id, floor_key: floor.id, voter_id: getBrowserVoterId(), busyness, note,
+    });
+    if (error) throw error;
+    saveReportCooldown(floor.id);
+    setModal('report-modal', false);
+    const refreshed = await refreshCrowdVotes();
+    if (refreshed) showToast('Your vote is saved. The crowd status uses at least 3 browser votes from the last hour.');
+  } catch (error) {
+    console.error('Could not save crowd report:', error);
+    showToast('Could not save this update. Please try again.');
+  } finally {
+    button.disabled = false;
+  }
 });
 
-$('#suggest-form').addEventListener('submit', (event) => {
+$('#suggest-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const name = $('#suggest-name').value.trim();
   const building = $('#suggest-building').value.trim();
@@ -513,26 +646,30 @@ $('#suggest-form').addEventListener('submit', (event) => {
   const amenities = $$('input[type="checkbox"]:checked', $('#suggest-form')).map((input) => input.value);
   const requestedFloor = $('#suggest-floor').value.trim();
   const details = $('#suggest-details').value.trim();
-  const id = `suggestion-${Date.now()}`;
-  const spotFloor = {
-    id: `${id}-area`, label: requestedFloor || 'Building area', area: name,
-    busyness: null, noise: null, groups: [], amenities, outlets: amenities.includes('outlets'),
-    updatedAt: null, reportCount: 0, detail: details || 'Student-submitted spot; details have not been verified.',
-  };
-  state.spots.push({
-    id, name, building, category: 'study', type: 'Student suggestion', community: true,
-    description: details || 'A place shared by a member of the Temple community.', area: building,
-    coordinates: null, position: null, floors: [spotFloor],
-  });
-  state.tab = 'community';
-  state.category = 'all';
-  state.query = '';
-  $('#search-input').value = '';
-  state.selectedSpotId = id;
-  state.selectedFloors[id] = spotFloor.id;
-  setModal('suggest-modal', false);
-  render();
-  showToast('Thanks for sharing a hidden gem. It’s visible in this demo session.');
+  const button = $('.modal-submit', event.currentTarget);
+  button.disabled = true;
+  try {
+    const { data, error } = await supabase.from('community_suggestions').insert({
+      name, building, floor_label: requestedFloor, amenities, details,
+    }).select().single();
+    if (error) throw error;
+    const spot = suggestionSpot(data);
+    state.spots.push(spot);
+    state.selectedFloors[spot.id] = spot.floors[0].id;
+    state.tab = 'community';
+    state.category = 'all';
+    state.query = '';
+    $('#search-input').value = '';
+    state.selectedSpotId = spot.id;
+    setModal('suggest-modal', false);
+    render();
+    showToast('Thanks for sharing a spot. It’s visible to everyone for 24 hours.');
+  } catch (error) {
+    console.error('Could not save suggestion:', error);
+    showToast('Could not save this suggestion. Please try again.');
+  } finally {
+    button.disabled = false;
+  }
 });
 
 $$('[data-close-modal]').forEach((button) => button.addEventListener('click', () => setModal(button.closest('.modal-backdrop').id, false)));
@@ -542,3 +679,4 @@ document.addEventListener('keydown', (event) => {
 });
 
 render();
+loadSharedData();
