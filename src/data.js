@@ -130,6 +130,16 @@ export const spots = [
     description: 'Move, play, or take a break from studying.', area: 'Main Campus', position: { x: 72, y: 75 }, coordinates: [39.97906, -75.15361],
     floors: [floor('ibc-main', 'Main level', 'Recreation space', 3, 3, ['small', 'large'], ['outlets'], 54, 7, 'Listed as a Campus Recreation facility by Temple University.')],
   },
+  {
+    id: 'aramark-star-weight-room', name: 'Aramark STAR Complex Weight Room', building: 'Aramark STAR Complex', category: 'recreation', type: 'Fitness',
+    description: 'Temple Campus Recreation’s weightlifting facility, with strength equipment and barbell training stations.', area: '15th & Montgomery', coordinates: [39.9811, -75.1596],
+    floors: [floor('aramark-star-main', 'Weight room', 'Aramark STAR Complex', null, null, ['solo', 'small', 'large'], [], null, 0, 'At 1800 N. 15th St., enter at 15th & Montgomery. Temple lists 50+ pieces of strength equipment; check Campus Recreation for current hours.')],
+  },
+  {
+    id: 'pearson-mcg-rec-courts', name: 'Pearson/McGonigle 3rd Floor Rec Courts', building: 'Pearson and McGonigle Halls', category: 'recreation', type: 'Recreation',
+    description: 'Indoor courts for basketball, volleyball, badminton, table tennis, and an indoor golf driving range.', area: '3rd floor · 1800 N. Broad St.', coordinates: [39.98103, -75.15803],
+    floors: [floor('pearson-mcg-courts', '3rd floor', 'Recreation courts', null, null, ['solo', 'small', 'large'], [], null, 0, 'Temple Campus Recreation lists the courts at 1800 N. Broad St. Check Campus Recreation for current hours and access details.')],
+  },
   ...diningSpots,
   ...foodTruckSpots,
 ];
